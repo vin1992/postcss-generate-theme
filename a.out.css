@@ -1,0 +1,16 @@
+a {
+	color: var(--black33);
+	background: linear-gradient(to left, var(--black33),#c24141 50%,var(--blackEE) 75%,var(--black33) 75%);
+	border: 1px solid #ffa500;
+}
+
+p,
+h1 {
+	color: var(--blackEE);
+}
+
+.theme-dark a {
+	color: #eee;
+	background: url('../abc') no-repeat center scroll;
+	border: 1px solid green;
+}
