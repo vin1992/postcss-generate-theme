@@ -8,9 +8,14 @@
  */
 
 const postcss = require('postcss');
+// const valueParser = require('postcss-value-parser');
 const { themeSelectorIncluded, verifyDeclareProp, processCssValue } = require('./utils');
 
 import { readFile, writeFile } from 'fs';
+
+// let cssValue = 'conic-gradient(from 0.25turn at 50% 30%, #eee, 10deg, #3f87a6, 350deg, #333)'
+// let parsedValue = valueParser(cssValue)
+// console.log('解析value', JSON.stringify(parsedValue, null, 2))
 
 const plugin = (options = {}) => {
 	let dark = options.darkSelector || '.theme-dark';
