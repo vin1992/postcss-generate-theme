@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2021-07-13 23:03:05
+ * @LastEditTime: 2021-07-13 23:12:42
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
@@ -51,7 +51,7 @@ const isHexColor = (o) => {
 
 // 判断是否是需要处理的css属性
 const verifyDeclareProp = (decl) => {
-	return decl.prop.split('-').pop() === 'color' || compositionProps.includes(decl.prop);
+	return compositionProps.includes(decl.prop) || decl.prop.split('-').pop() === 'color';
 };
 
 const transformColorValToHex = (colorValue) => {
@@ -162,7 +162,6 @@ const transpileGradient = (decl) => {
 			}
 		}
 
-		console.log(ast[0], finalVals);
 		return `${ast[0].type}(${direction}, ${finalVals.join(',')})`;
 	}
 };
