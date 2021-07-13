@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2021-07-08 23:50:47
+ * @LastEditTime: 2021-07-13 23:03:05
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
@@ -11,24 +11,47 @@ const valueParser = require('postcss-value-parser');
 const shortenCssHex = require('shorten-css-hex');
 const Window = require('window');
 const gradient = require('gradient-parser');
+const cssColorKeyWords = require('css-color-keywords');
 
 const theme = require('./theme');
 
 const window = new Window();
 
-const compositionProps = ['border', 'background', 'background-image', 'box-shadow', 'text-shadow', 'outline'];
-const ignoreColor = ['none', 'transparent', 'currentcolor']
+const compositionProps = [
+	'border',
+	'border-top',
+	'border-right',
+	'border-bottom',
+	'border-left',
+	'background',
+	'background-image',
+	'box-shadow',
+	'text-shadow',
+	'outline',
+];
+const ignoreColor = ['none', 'transparent', 'currentColor'];
 
 // 判断是否支持css 变量
 const isSupported = window.CSS && window.CSS.supports && window.CSS.supports('--a', 0);
 
+const isColorKeyWords = (val) => {
+	return !!cssColorKeyWords[val];
+};
 const themeSelectorIncluded = (selectors = '', darkSelector, nightSelector) => {
 	return selectors?.includes(darkSelector) || selectors?.includes(nightSelector);
 };
 
+const isColorFunc = (o) => {
+	return o.type === 'function' && ['rgb', 'rgba', 'hsl', 'hsla'].includes(o.value);
+};
+
+const isHexColor = (o) => {
+	return o.type === 'word' && o.value.indexOf('#') === 0;
+};
+
 // 判断是否是需要处理的css属性
 const verifyDeclareProp = (decl) => {
-	return decl.prop?.split('-').pop() === 'color' || compositionProps.includes(decl.prop);
+	return decl.prop.split('-').pop() === 'color' || compositionProps.includes(decl.prop);
 };
 
 const transformColorValToHex = (colorValue) => {
@@ -37,7 +60,7 @@ const transformColorValToHex = (colorValue) => {
 };
 
 const findModeColor = (lightVal, decl) => {
-	let key = lightVal
+	let key = lightVal;
 	// 前景色 和 背景色 的 白色 区别命名索引key
 	if (['background', 'background-color'].includes(decl.prop) && lightVal === '#fff') {
 		key = `${key}_bg`;
@@ -53,8 +76,19 @@ const findModeColor = (lightVal, decl) => {
 };
 
 const processCssProp = (decl) => {
-	if (['border', 'background', 'outline'].includes(decl.prop)) {
-		if (decl.value.includes('linear-gradient(') || decl.value.includes('url(')) {
+	if (
+		[
+			'border',
+			'border-top',
+			'border-right',
+			'border-bottom',
+			'border-left',
+			'background-image',
+			'background',
+			'outline',
+		].includes(decl.prop)
+	) {
+		if (decl.prop === 'background-image' || decl.value.includes('-gradient(') || decl.value.includes('url(')) {
 			return decl.prop;
 		}
 		return `${decl.prop}-color`;
@@ -62,7 +96,6 @@ const processCssProp = (decl) => {
 
 	return decl.prop;
 };
-
 
 const transpileGradient = (decl) => {
 	// TODO: 多个逗号分隔的 value的场景
@@ -81,11 +114,10 @@ const transpileGradient = (decl) => {
 		let colorList = ast[0].colorStops;
 		colorList.forEach((color, id) => {
 			let item = '';
-			if (color.value === 'transparent') {
-				item = color.value;
-			} else if (color.type === 'hex') {
-				let lightVal = transformColorValToHex(`#${color.value}`);
-				item = findModeColor(lightVal, decl);
+			if (color.type === 'hex') {
+				item = findModeColor(transformColorValToHex(`#${color.value}`), decl);
+			} else if (isColorKeyWords(color.value)) {
+				item = findModeColor(transformColorValToHex(color.value), decl);
 			} else if (['rgb', 'rgba'].includes(color.type)) {
 				let innerVal = color.value.join(',');
 				let lightVal =
@@ -103,7 +135,7 @@ const transpileGradient = (decl) => {
 
 				item = findModeColor(lightVal, decl);
 			} else {
-				item = findModeColor(transformColorValToHex(color.value), decl);
+				item = color.value;
 			}
 
 			if (color.length) {
@@ -115,7 +147,10 @@ const transpileGradient = (decl) => {
 
 		let orientation = ast[0].orientation;
 
-		let direction = decl.value.slice(decl.value.indexOf('(') + 1).split(',').shift();
+		let direction = decl.value
+			.slice(decl.value.indexOf('(') + 1)
+			.split(',')
+			.shift();
 
 		if (orientation) {
 			if (orientation.type === 'angular') {
@@ -127,24 +162,27 @@ const transpileGradient = (decl) => {
 			}
 		}
 
-		console.log(ast[0], finalVals)
+		console.log(ast[0], finalVals);
 		return `${ast[0].type}(${direction}, ${finalVals.join(',')})`;
 	}
 };
 
 const transpileCompositionValue = (decl) => {
 	let { nodes: valueNodes } = valueParser(decl.value);
-	let pureValNodes = valueNodes.filter(node => node.type !== 'space');
+	let pureValNodes = valueNodes.filter((node) => node.type !== 'space');
 
 	const finalVals = [];
 
 	if (pureValNodes.length) {
 		pureValNodes.forEach((node, id) => {
-			let item = ''
-			if (isHexColor(node)) {
+			let item = '';
+			if (isHexColor(node) || isColorKeyWords(node.value)) {
 				item = findModeColor(transformColorValToHex(node.value), decl);
 			} else if (['rgb', 'rgba'].includes(node.value)) {
-				let innerVal = node.nodes.filter(val => val.type === 'word').map(n => n.value).join(',');
+				let innerVal = node.nodes
+					.filter((val) => val.type === 'word')
+					.map((n) => n.value)
+					.join(',');
 				let lightVal =
 					node.value === 'rgb'
 						? transformColorValToHex(`rgb(${innerVal})`)
@@ -152,7 +190,10 @@ const transpileCompositionValue = (decl) => {
 
 				item = findModeColor(lightVal, decl);
 			} else if (['hsl', 'hsla'].includes(node.value)) {
-				let innerVal = node.nodes.filter(val => val.type === 'word').map(n => n.value).join(',');
+				let innerVal = node.nodes
+					.filter((val) => val.type === 'word')
+					.map((n) => n.value)
+					.join(',');
 				let lightVal =
 					node.value === 'hsl'
 						? transformColorValToHex(`hsl(${innerVal})`)
@@ -160,24 +201,15 @@ const transpileCompositionValue = (decl) => {
 
 				item = findModeColor(lightVal, decl);
 			} else {
-				item = node.value
+				item = node.value;
 			}
 
-			finalVals[id] = item
-		})
+			finalVals[id] = item;
+		});
 
-		return finalVals.join(' ')
+		return finalVals.join(' ');
 	}
-
-
-}
-const isColorFunc = (o) => {
-	return o.type === 'function' && ['rgb', 'rgba', 'hsl', 'hsla'].includes(o.value)
-}
-
-const isHexColor = (o) => {
-	return o.type === 'word' && o.value.indexOf('#') === 0
-}
+};
 
 const processCssValue = (decl) => {
 	// 普通 color value  直接  返回
@@ -189,7 +221,10 @@ const processCssValue = (decl) => {
 
 	if (ignoreColor.includes(decl.value)) {
 		return decl.value;
-	} else if (valueNodes.length === 1 && (isColorFunc(valueNodes[0]) || isHexColor(valueNodes[0]))) {
+	} else if (
+		valueNodes.length === 1 &&
+		(isColorFunc(valueNodes[0]) || isHexColor(valueNodes[0]) || isColorKeyWords(decl.value))
+	) {
 		// 单个颜色属性
 		return findModeColor(transformColorValToHex(decl.value), decl);
 	} else if (decl.value.includes('url(')) {
@@ -199,8 +234,8 @@ const processCssValue = (decl) => {
 		// 处理 conic-/linear-/radial-gradient ,暂不支持repeat
 		return transpileGradient(decl);
 	} else {
-		//  处理复合属性 类似： #333 1px solid 
-		return transpileCompositionValue(decl)
+		//  处理复合属性 类似： #333 1px solid
+		return transpileCompositionValue(decl);
 	}
 };
 
