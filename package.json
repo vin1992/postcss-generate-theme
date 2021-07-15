@@ -1,5 +1,5 @@
 {
-	"name": "postcss-generate-theme",
+	"name": "@mf2e/postcss-generate-theme",
 	"version": "1.0.0",
 	"description": "主题色生成插件",
 	"main": "index.js",

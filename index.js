@@ -7,17 +7,9 @@
  * @FilePath: /gen-theme/index.js
  */
 
-const postcss = require('postcss');
-// const valueParser = require('postcss-value-parser');
 const { themeSelectorIncluded, verifyDeclareProp, processCssValue } = require('./utils');
 
-import { readFile, writeFile } from 'fs';
-
-// let cssValue = 'conic-gradient(from 0.25turn at 50% 30%, #eee, 10deg, #3f87a6, 350deg, #333)'
-// let parsedValue = valueParser(cssValue)
-// console.log('解析value', JSON.stringify(parsedValue, null, 2))
-
-const plugin = (options = {}) => {
+module.exports = (options = {}) => {
 	let dark = options.darkSelector || '.theme-dark';
 	let night = options.nightSelector || '.theme-night';
 
@@ -43,17 +35,5 @@ const plugin = (options = {}) => {
 	};
 };
 
-plugin.postcss = true;
-// module.exports.postcss = true;
 
-readFile('./a.css', (err, data) => {
-	if (err) throw err;
-	postcss([plugin])
-		.process(data, { from: './a.css' })
-		.then((res) => {
-			writeFile('a.out.css', res.css, (err) => {
-				if (err) throw err;
-				console.log('The file has been saved!');
-			});
-		});
-});
+module.exports.postcss = true;
