@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2021-07-13 23:12:42
+ * @LastEditTime: 2021-08-31 23:01:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
@@ -44,9 +44,15 @@ const themeSelectorIncluded = (selectors = "", darkSelector, nightSelector) => {
   );
 };
 
-const isColorFunc = (o) => {
+const isColorFuncNoOpacity = (o) => {
   return (
-    o.type === "function" && ["rgb", "rgba", "hsl", "hsla"].includes(o.value)
+    o.type === "function" && ["rgb",  "hsl"].includes(o.value)
+  );
+};
+
+const isColorFuncHasOpacity = (o) => {
+  return (
+    o.type === "function" && ["rgba",  "hsla"].includes(o.value)
   );
 };
 
@@ -133,21 +139,26 @@ const transpileGradient = (decl) => {
       } else if (isColorKeyWords(color.value)) {
         item = findModeColor(transformColorValToHex(color.value), decl);
       } else if (["rgb", "rgba"].includes(color.type)) {
+        console.log(color);
         let innerVal = color.value.join(",");
-        let lightVal =
-          color.type === "rgb"
-            ? transformColorValToHex(`rgb(${innerVal})`)
-            : transformColorValToHex(`rgba(${innerVal})`);
 
-        item = findModeColor(lightVal, decl);
+        if (color.type === 'rgb') {
+          let lightVal =transformColorValToHex(`rgb(${innerVal})`)
+          item = findModeColor(lightVal, decl);
+        }else {
+          item = `rgba(${innerVal})`
+        }
+
       } else if (["hsl", "hsla"].includes(color.type)) {
         let innerVal = color.value.join(",");
-        let lightVal =
-          color.type === "hsl"
-            ? transformColorValToHex(`hsl(${innerVal})`)
-            : transformColorValToHex(`hsla(${innerVal})`);
 
-        item = findModeColor(lightVal, decl);
+        if (color.type === 'hsl') {
+          let lightVal =transformColorValToHex(`hsl(${innerVal})`)
+          item = findModeColor(lightVal, decl);
+        }else {
+          item = `hsla(${innerVal})`
+        }
+
       } else {
         item = color.value;
       }
@@ -193,26 +204,30 @@ const transpileCompositionValue = (decl) => {
         item = findModeColor(transformColorValToHex(node.value), decl);
       } else if (["rgb", "rgba"].includes(node.value)) {
         let innerVal = node.nodes
-          .filter((val) => val.type === "word")
-          .map((n) => n.value)
-          .join(",");
-        let lightVal =
-          node.value === "rgb"
-            ? transformColorValToHex(`rgb(${innerVal})`)
-            : transformColorValToHex(`rgba(${innerVal})`);
+        .filter((val) => val.type === "word")
+        .map((n) => n.value)
+        .join(",");
+        
+        if (node.value === 'rgb') {     
+          let lightVal = transformColorValToHex(`rgb(${innerVal})`)
+          item = findModeColor(lightVal, decl);
+        }else {
+          item = `rgba(${innerVal})`
+        }
 
-        item = findModeColor(lightVal, decl);
       } else if (["hsl", "hsla"].includes(node.value)) {
         let innerVal = node.nodes
           .filter((val) => val.type === "word")
           .map((n) => n.value)
           .join(",");
-        let lightVal =
-          node.value === "hsl"
-            ? transformColorValToHex(`hsl(${innerVal})`)
-            : transformColorValToHex(`hsla(${innerVal})`);
 
-        item = findModeColor(lightVal, decl);
+        if (node.value === "hsl") {
+          let lightVal = transformColorValToHex(`hsl(${innerVal})`)
+          item = findModeColor(lightVal, decl);
+        }else {
+          item = `hsla(${innerVal})`
+        }
+
       } else {
         item = node.value;
       }
@@ -236,13 +251,17 @@ const processCssValue = (decl) => {
     return decl.value;
   } else if (
     valueNodes.length === 1 &&
-    (isColorFunc(valueNodes[0]) ||
+    (isColorFuncNoOpacity(valueNodes[0]) ||
       isHexColor(valueNodes[0]) ||
       isColorKeyWords(decl.value))
   ) {
     // 单个颜色属性
     return findModeColor(transformColorValToHex(decl.value), decl);
-  } else if (decl.value.includes("url(")) {
+  } else if (valueNodes.length === 1 && isColorFuncHasOpacity(valueNodes[0])) {
+    // rgba hlsa 带透明度的颜色值不处理 
+    return decl.value;
+
+  }else if (decl.value.includes("url(")) {
     // TODO: url 单独处理 暂时跳过
     return decl.value;
   } else if (decl.value.includes("-gradient(")) {
