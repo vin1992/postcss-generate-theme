@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2021-08-31 23:01:17
+ * @LastEditTime: 2021-09-01 23:59:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
@@ -25,9 +25,12 @@ const compositionProps = [
   "border-left",
   "background",
   "background-image",
+  "border-image",
+  "content",
   "box-shadow",
   "text-shadow",
   "outline",
+  "list-style",
 ];
 const ignoreColor = ["none", "transparent", "currentColor"];
 
@@ -88,24 +91,16 @@ const findModeColor = (lightVal, decl) => {
 };
 
 const processCssProp = (decl) => {
-  if (
-    [
-      "border",
-      "border-top",
-      "border-right",
-      "border-bottom",
-      "border-left",
-      "background-image",
-      "background",
-      "outline",
-    ].includes(decl.prop)
-  ) {
-    if (
-      decl.prop === "background-image" ||
-      decl.value.includes("-gradient(") ||
-      decl.value.includes("url(")
-    ) {
+  if (compositionProps.includes(decl.prop)) {
+    if (decl.value.includes("-gradient(")) {
       return decl.prop;
+    }
+
+    if (decl.value.includes("url(")) {
+      if (["content", "border-image", "background-image"].includes(decl.prop)) {
+        return decl.prop;
+      }
+      return `${decl.prop}-image`;
     }
     return `${decl.prop}-color`;
   }
@@ -181,6 +176,46 @@ const transpileGradient = (decl) => {
     }
 
     return `${ast[0].type}(${direction}, ${finalVals.join(",")})`;
+  }
+};
+
+const rewriteUrlValue = (url, mode) => {
+  if (!url) return "";
+  let paths = url.split("/");
+  let newPaths = paths.map((p, id) => {
+    if (id === paths.length - 1) {
+      return p.replace(".", `.${mode}.`);
+    }
+    return p;
+  });
+
+  return newPaths.join("/");
+};
+
+const transpileUrlValue = (decl, theme) => {
+  let { nodes: valueNodes } = valueParser(decl.value);
+  // console.log(JSON.stringify(valueNodes));
+  let pureValNodes = valueNodes.filter((node) => node.type !== "space");
+
+  // const finalVals = [];
+  let res = "";
+
+  if (pureValNodes.length) {
+    pureValNodes.forEach((node, id) => {
+      // let item = "";
+      if (
+        node.type === "function" &&
+        node.value === "url" &&
+        node.nodes.length === 1
+      ) {
+        res = `url("${rewriteUrlValue(node.nodes[0].value, theme)}")`;
+      }
+
+      // finalVals[id] = item;
+    });
+
+    // return finalVals.join(" ");
+    return res;
   }
 };
 
@@ -282,4 +317,5 @@ module.exports = {
   processCssProp,
   processCssValue,
   processSelector,
+  transpileUrlValue,
 };
