@@ -7,50 +7,42 @@
  * @FilePath: /gen-theme/index.js
  */
 
-const { themeSelectorIncluded, verifyDeclareProp, processCssValue } = require('./utils');
+const {
+  themeSelectorIncluded,
+  verifyDeclareProp,
+  processCssValue,
+} = require("./utils");
 
-let postcss = require("postcss");
-let { readFile, writeFile, readFileSync } = require("fs");
+module.exports = (options = {}) => {
+  let dark = options.darkSelector || ".theme-dark";
+  let night = options.nightSelector || ".theme-night";
 
-const plugin = (options = {}) => {
-	let dark = options.darkSelector || '.theme-dark';
-	let night = options.nightSelector || '.theme-night';
+  return {
+    postcssPlugin: "postcss-generate-theme",
+    Root(root) {
+      root.walk((node) => {
+        let { type, selector, nodes: declNodes } = node;
 
-	return {
-		postcssPlugin: 'postcss-generate-theme',
-		Root(root) {
-			root.walk((node) => {
-				let { type, selector, nodes: declNodes } = node;
+        let isIncludedThemeSelector = themeSelectorIncluded(
+          selector,
+          dark,
+          night
+        );
 
-				let isIncludedThemeSelector = themeSelectorIncluded(selector, dark, night);
+        if (type === "rule" && !isIncludedThemeSelector && declNodes) {
+          let needProcessDecls = declNodes.filter((dcl) =>
+            verifyDeclareProp(dcl)
+          );
 
-				if (type === 'rule' && !isIncludedThemeSelector && declNodes) {
-					let needProcessDecls = declNodes.filter((dcl) => verifyDeclareProp(dcl));
-
-					if (needProcessDecls.length) {
-						needProcessDecls.forEach((decl) => {
-							decl.value = processCssValue(decl);
-						});
-					}
-				}
-			});
-		},
-	};
+          if (needProcessDecls.length) {
+            needProcessDecls.forEach((decl) => {
+              decl.value = processCssValue(decl);
+            });
+          }
+        }
+      });
+    },
+  };
 };
 
-plugin.postcss = true;
-
-// module.exports.postcss = true;
-
-
-readFile("./test.css", (err, data) => {
-  if (err) throw err;
-  postcss([plugin])
-    .process(data, { from: "./test.css" })
-    .then((res) => {
-      writeFile("test.out.css", res.css, (err) => {
-        if (err) throw err;
-        console.log("The file has been saved!");
-      });
-    });
-});
+module.exports.postcss = true;

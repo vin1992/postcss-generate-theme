@@ -45,15 +45,11 @@ const themeSelectorIncluded = (selectors = "", darkSelector, nightSelector) => {
 };
 
 const isColorFuncNoOpacity = (o) => {
-  return (
-    o.type === "function" && ["rgb",  "hsl"].includes(o.value)
-  );
+  return o.type === "function" && ["rgb", "hsl"].includes(o.value);
 };
 
 const isColorFuncHasOpacity = (o) => {
-  return (
-    o.type === "function" && ["rgba",  "hsla"].includes(o.value)
-  );
+  return o.type === "function" && ["rgba", "hsla"].includes(o.value);
 };
 
 const isHexColor = (o) => {
@@ -139,26 +135,23 @@ const transpileGradient = (decl) => {
       } else if (isColorKeyWords(color.value)) {
         item = findModeColor(transformColorValToHex(color.value), decl);
       } else if (["rgb", "rgba"].includes(color.type)) {
-        console.log(color);
         let innerVal = color.value.join(",");
 
-        if (color.type === 'rgb') {
-          let lightVal =transformColorValToHex(`rgb(${innerVal})`)
+        if (color.type === "rgb") {
+          let lightVal = transformColorValToHex(`rgb(${innerVal})`);
           item = findModeColor(lightVal, decl);
-        }else {
-          item = `rgba(${innerVal})`
+        } else {
+          item = `rgba(${innerVal})`;
         }
-
       } else if (["hsl", "hsla"].includes(color.type)) {
         let innerVal = color.value.join(",");
 
-        if (color.type === 'hsl') {
-          let lightVal =transformColorValToHex(`hsl(${innerVal})`)
+        if (color.type === "hsl") {
+          let lightVal = transformColorValToHex(`hsl(${innerVal})`);
           item = findModeColor(lightVal, decl);
-        }else {
-          item = `hsla(${innerVal})`
+        } else {
+          item = `hsla(${innerVal})`;
         }
-
       } else {
         item = color.value;
       }
@@ -204,17 +197,16 @@ const transpileCompositionValue = (decl) => {
         item = findModeColor(transformColorValToHex(node.value), decl);
       } else if (["rgb", "rgba"].includes(node.value)) {
         let innerVal = node.nodes
-        .filter((val) => val.type === "word")
-        .map((n) => n.value)
-        .join(",");
-        
-        if (node.value === 'rgb') {     
-          let lightVal = transformColorValToHex(`rgb(${innerVal})`)
-          item = findModeColor(lightVal, decl);
-        }else {
-          item = `rgba(${innerVal})`
-        }
+          .filter((val) => val.type === "word")
+          .map((n) => n.value)
+          .join(",");
 
+        if (node.value === "rgb") {
+          let lightVal = transformColorValToHex(`rgb(${innerVal})`);
+          item = findModeColor(lightVal, decl);
+        } else {
+          item = `rgba(${innerVal})`;
+        }
       } else if (["hsl", "hsla"].includes(node.value)) {
         let innerVal = node.nodes
           .filter((val) => val.type === "word")
@@ -222,12 +214,11 @@ const transpileCompositionValue = (decl) => {
           .join(",");
 
         if (node.value === "hsl") {
-          let lightVal = transformColorValToHex(`hsl(${innerVal})`)
+          let lightVal = transformColorValToHex(`hsl(${innerVal})`);
           item = findModeColor(lightVal, decl);
-        }else {
-          item = `hsla(${innerVal})`
+        } else {
+          item = `hsla(${innerVal})`;
         }
-
       } else {
         item = node.value;
       }
@@ -258,10 +249,9 @@ const processCssValue = (decl) => {
     // 单个颜色属性
     return findModeColor(transformColorValToHex(decl.value), decl);
   } else if (valueNodes.length === 1 && isColorFuncHasOpacity(valueNodes[0])) {
-    // rgba hlsa 带透明度的颜色值不处理 
+    // rgba hlsa 带透明度的颜色值不处理
     return decl.value;
-
-  }else if (decl.value.includes("url(")) {
+  } else if (decl.value.includes("url(")) {
     // TODO: url 单独处理 暂时跳过
     return decl.value;
   } else if (decl.value.includes("-gradient(")) {
