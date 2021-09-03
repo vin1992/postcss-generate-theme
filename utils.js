@@ -194,15 +194,12 @@ const rewriteUrlValue = (url, mode) => {
 
 const transpileUrlValue = (decl, theme) => {
   let { nodes: valueNodes } = valueParser(decl.value);
-  // console.log(JSON.stringify(valueNodes));
   let pureValNodes = valueNodes.filter((node) => node.type !== "space");
 
-  // const finalVals = [];
   let res = "";
 
   if (pureValNodes.length) {
     pureValNodes.forEach((node, id) => {
-      // let item = "";
       if (
         node.type === "function" &&
         node.value === "url" &&
@@ -210,11 +207,8 @@ const transpileUrlValue = (decl, theme) => {
       ) {
         res = `url("${rewriteUrlValue(node.nodes[0].value, theme)}")`;
       }
-
-      // finalVals[id] = item;
     });
 
-    // return finalVals.join(" ");
     return res;
   }
 };
@@ -287,7 +281,7 @@ const processCssValue = (decl) => {
     // rgba hlsa 带透明度的颜色值不处理
     return decl.value;
   } else if (decl.value.includes("url(")) {
-    // TODO: url 单独处理 暂时跳过
+    // url 已经前置处理
     return decl.value;
   } else if (decl.value.includes("-gradient(")) {
     // 处理 conic-/linear-/radial-gradient ,暂不支持repeat
