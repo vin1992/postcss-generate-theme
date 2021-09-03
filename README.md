@@ -66,6 +66,41 @@
 }
 ```
 
+另外，插件从 1.0.4 版本开始支持图片主题色的功能。提供一张日间使用的图片的同时，再提供相应的夜间和深色的图片，就可以自动生成对应的主题色样式代码。比如：
+
+```css
+.container {
+  background: url("./img/bg.png") no-repeat center scroll;
+  background-size: contain;
+}
+```
+
+插件处理过后，会变成
+
+```css
+.container {
+  background: url("./img/bg.png") no-repeat center scroll;
+  background-size: contain;
+  list-style: square url("./img/dot-ico.png");
+}
+
+.theme-dark .container {
+  background-image: url("./img/bg.dark.png");
+  list-style-image: url("./img/dot-ico.dark.png");
+}
+
+.theme-night .container {
+  background-image: url("./img/bg.night.png");
+  list-style-image: url("./img/dot-ico.night.png");
+}
+```
+
+也许你已经注意到了生成前后代码的区别，是的。在开发过程中需要有两点注意：
+
+1. 需要将日夜间（还有深色模式）对应的三种图片确保放在了同一个文件夹下
+
+2. 插件会在深色和夜间模式下，会在日间图片扩展名 (比如`.png`) 前追加`.dark` 和 `.night` ，所以命名图片的时候需要遵循上面的的规则，确保生成后的图片路径是真实存在的。
+
 ## 使用
 
 **第一步:** 安装插件:
@@ -120,13 +155,15 @@ module.exports = {
 
 目前支持以下 css 属性
 
-| 单一属性         | 复合属性                         |
-| :--------------- | :------------------------------- |
-| color            | border/-top/-left/-right/-bottom |
-| \*-color         | background                       |
-| background-image | box-shadow                       |
-|                  | text-shadow                      |
-|                  | outline                          |
+| 单一属性                    | 复合属性                         |
+| :-------------------------- | :------------------------------- |
+| color                       | border/-top/-left/-right/-bottom |
+| \*-color                    | background                       |
+| background-image            | box-shadow                       |
+| border-image                | text-shadow                      |
+| content（value 包含 url()） | outline                          |
+|                             | list-style（value 包含 url()）   |
+|                             |
 
 ### 插件会处理哪些色值，哪些色值又不做处理呢？
 
@@ -168,8 +205,9 @@ module.exports = {
 
 比如 `linear-gradient ` 方法里的定义渐变方向的参数，如果是 0.25turn 这种的目前插件依赖的`gradient-parser`还无法被识别，插件还是会原样返回
 
-再比如 `background-image:url(...)` 这类的值为`url()`方法的 目前不会处理，不过插件也支持我们可以自己写需要的夜间样式。
+再比如 `rgba()` 、`hsla()` 这类色值带有透明通道的 目前会被忽略处理，因为在转换过程中无法将 16 进制的色值通过 css 变量转换成浏览器可识别的。当然你还是可以自定义的方式解决主题色值的问题
 
 ### 色值都支持哪些类型呢？比如我写了#xxxxxx 6 位的会被处理吗？
 
-会的。 目前插件支持 hex、rgb、hls 和 color 关键字 ，其中 6 位的 hex 色值 如果可以缩写会处理为 3 位的，比如 `#ffffff` 会 被识别为 `#fff`
+会的。 目前插件支持 `hex`、`rgb`、`hls` 和 color 关键字 ，其中 6 位的 `hex` 色值 如果可以缩写会处理为 3 位的，比如 `#ffffff` 会 被识别为 `#fff`
+不过，`rgba` 和 `hsla` 带有透明色的 css 颜色函数 目前会忽略处理
