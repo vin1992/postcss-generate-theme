@@ -266,8 +266,13 @@ const processCssValue = (decl) => {
 
   let parsedValue = valueParser(decl.value);
   let { nodes: valueNodes } = parsedValue;
+  console.log(valueNodes);
 
   if (ignoreColor.includes(decl.value)) {
+    return decl.value;
+  } else if (decl.prop === "content" && !decl.value.includes("url(")) {
+    return `${decl.value}`;
+  } else if (decl.value.includes("var(")) {
     return decl.value;
   } else if (
     valueNodes.length === 1 &&
@@ -288,6 +293,7 @@ const processCssValue = (decl) => {
     return transpileGradient(decl);
   } else {
     //  处理复合属性 类似： #333 1px solid
+    console.log("111");
     return transpileCompositionValue(decl);
   }
 };

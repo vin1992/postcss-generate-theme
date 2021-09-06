@@ -16,7 +16,10 @@ const {
   transpileUrlValue,
 } = require("./utils");
 
-module.exports = (options = {}) => {
+let postcss = require("postcss");
+let { readFile, writeFile, readFileSync } = require("fs");
+
+const plugin = (options = {}) => {
   let dark = options.darkSelector || ".theme-dark";
   let night = options.nightSelector || ".theme-night";
 
@@ -40,13 +43,6 @@ module.exports = (options = {}) => {
           );
 
           if (needProcessDecls.length) {
-            let fixDark = new Rule({
-              selector: processSelector(selector, dark),
-            });
-            let fixNight = new Rule({
-              selector: processSelector(selector, night),
-            });
-
             let darkAppendRules = [];
             let nightAppendRules = [];
 
@@ -64,16 +60,24 @@ module.exports = (options = {}) => {
               }
             });
 
-            darkAppendRules.forEach((rule) => {
-              fixDark.append(rule);
-            });
+            if (darkAppendRules.length && nightAppendRules.length) {
+              let fixDark = new Rule({
+                selector: processSelector(selector, dark),
+              });
+              let fixNight = new Rule({
+                selector: processSelector(selector, night),
+              });
+              darkAppendRules.forEach((rule) => {
+                fixDark.append(rule);
+              });
 
-            nightAppendRules.forEach((rule) => {
-              fixNight.append(rule);
-            });
+              nightAppendRules.forEach((rule) => {
+                fixNight.append(rule);
+              });
 
-            last.after(fixDark);
-            fixDark.after(fixNight);
+              last.after(fixDark);
+              fixDark.after(fixNight);
+            }
           }
         }
       });
@@ -81,4 +85,17 @@ module.exports = (options = {}) => {
   };
 };
 
-module.exports.postcss = true;
+plugin.postcss = true;
+// module.exports.postcss = true;
+
+readFile("./a.css", (err, data) => {
+  if (err) throw err;
+  postcss([plugin])
+    .process(data, { from: "./a.css" })
+    .then((res) => {
+      writeFile("a.out.css", res.css, (err) => {
+        if (err) throw err;
+        console.log("The file has been saved!");
+      });
+    });
+});
