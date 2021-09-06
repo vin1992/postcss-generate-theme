@@ -120,62 +120,70 @@ const transpileGradient = (decl) => {
     return val;
   }
 
-  let finalVals = [];
   if (ast.length > 0 && ast[0].type.includes("-gradient")) {
-    let colorList = ast[0].colorStops;
-    colorList.forEach((color, id) => {
-      let item = "";
-      if (color.type === "hex") {
-        item = findModeColor(transformColorValToHex(`#${color.value}`), decl);
-      } else if (isColorKeyWords(color.value)) {
-        item = findModeColor(transformColorValToHex(color.value), decl);
-      } else if (["rgb", "rgba"].includes(color.type)) {
-        let innerVal = color.value.join(",");
+    let multipleVal = [];
 
-        if (color.type === "rgb") {
-          let lightVal = transformColorValToHex(`rgb(${innerVal})`);
-          item = findModeColor(lightVal, decl);
+    ast.forEach((astItem, index) => {
+      let finalVals = [];
+
+      let colorList = astItem.colorStops;
+      colorList.forEach((color, id) => {
+        let item = "";
+        if (color.type === "hex") {
+          item = findModeColor(transformColorValToHex(`#${color.value}`), decl);
+        } else if (isColorKeyWords(color.value)) {
+          item = findModeColor(transformColorValToHex(color.value), decl);
+        } else if (["rgb", "rgba"].includes(color.type)) {
+          let innerVal = color.value.join(",");
+
+          if (color.type === "rgb") {
+            let lightVal = transformColorValToHex(`rgb(${innerVal})`);
+            item = findModeColor(lightVal, decl);
+          } else {
+            item = `rgba(${innerVal})`;
+          }
+        } else if (["hsl", "hsla"].includes(color.type)) {
+          let innerVal = color.value.join(",");
+
+          if (color.type === "hsl") {
+            let lightVal = transformColorValToHex(`hsl(${innerVal})`);
+            item = findModeColor(lightVal, decl);
+          } else {
+            item = `hsla(${innerVal})`;
+          }
         } else {
-          item = `rgba(${innerVal})`;
+          item = color.value;
         }
-      } else if (["hsl", "hsla"].includes(color.type)) {
-        let innerVal = color.value.join(",");
 
-        if (color.type === "hsl") {
-          let lightVal = transformColorValToHex(`hsl(${innerVal})`);
-          item = findModeColor(lightVal, decl);
-        } else {
-          item = `hsla(${innerVal})`;
+        if (color.length) {
+          item += ` ${color.length.value}${color.length.type}`;
         }
-      } else {
-        item = color.value;
-      }
 
-      if (color.length) {
-        item += ` ${color.length.value}${color.length.type}`;
-      }
+        finalVals[id] = item;
+      });
 
-      finalVals[id] = item;
+      let orientation = astItem.orientation;
+
+      let direction = decl.value
+        .slice(decl.value.indexOf("(") + 1)
+        .split(",")
+        .shift();
+
+      if (orientation) {
+        if (orientation.type === "angular") {
+          direction = orientation.value + "deg";
+        } else if (orientation.type === "directional") {
+          direction = `to ${orientation.value}`;
+        } else if (orientation[0].type === "extent-keyword") {
+          direction = orientation[0].value;
+        }
+      }
+      multipleVal[index] = `${astItem.type}(${direction}, ${finalVals.join(
+        ","
+      )})`;
     });
 
-    let orientation = ast[0].orientation;
-
-    let direction = decl.value
-      .slice(decl.value.indexOf("(") + 1)
-      .split(",")
-      .shift();
-
-    if (orientation) {
-      if (orientation.type === "angular") {
-        direction = orientation.value + "deg";
-      } else if (orientation.type === "directional") {
-        direction = `to ${orientation.value}`;
-      } else if (orientation[0].type === "extent-keyword") {
-        direction = orientation[0].value;
-      }
-    }
-
-    return `${ast[0].type}(${direction}, ${finalVals.join(",")})`;
+    return multipleVal.join(",");
   }
 };
 
