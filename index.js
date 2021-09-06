@@ -1,7 +1,7 @@
 /*
  * @Author: xuzhigang01@corp.netease.com
  * @Date: 2021-06-16 22:05:07
- * @LastEditTime: 2021-09-01 23:51:33
+ * @LastEditTime: 2021-09-06 22:05:05
  * @LastEditors: Please set LastEditors
  * @Description: 主题色样式生成
  * @FilePath: /gen-theme/index.js
@@ -47,7 +47,10 @@ const plugin = (options = {}) => {
             let nightAppendRules = [];
 
             needProcessDecls.forEach((decl) => {
-              if (decl.value.includes("url(")) {
+              if (
+                decl.value.includes("url(") &&
+                !decl.value.includes("-gradient(")
+              ) {
                 let prop = processCssProp(decl);
 
                 let darkVal = transpileUrlValue(decl, "dark");

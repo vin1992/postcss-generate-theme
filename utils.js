@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2021-09-01 23:59:17
+ * @LastEditTime: 2021-09-06 22:28:28
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
@@ -90,26 +90,20 @@ const findModeColor = (lightVal, decl) => {
   return `var(${cssVaribleName})`;
 };
 
-const processCssProp = (decl) => {
-  if (compositionProps.includes(decl.prop)) {
-    if (decl.value.includes("-gradient(")) {
-      return decl.prop;
+const rewriteUrlValue = (url, mode) => {
+  if (!url) return "";
+  let paths = url.split("/");
+  let newPaths = paths.map((p, id) => {
+    if (id === paths.length - 1) {
+      return p.replace(".", `.${mode}.`);
     }
+    return p;
+  });
 
-    if (decl.value.includes("url(")) {
-      if (["content", "border-image", "background-image"].includes(decl.prop)) {
-        return decl.prop;
-      }
-      return `${decl.prop}-image`;
-    }
-    return `${decl.prop}-color`;
-  }
-
-  return decl.prop;
+  return newPaths.join("/");
 };
 
 const transpileGradient = (decl) => {
-  // TODO: 多个逗号分隔的 value的场景
   let { value: val } = decl;
   let ast;
   try {
@@ -120,13 +114,19 @@ const transpileGradient = (decl) => {
     return val;
   }
 
-  if (ast.length > 0 && ast[0].type.includes("-gradient")) {
+  if (
+    ast &&
+    Array.isArray(ast) &&
+    ast.length > 0 &&
+    ast[0].type.includes("-gradient")
+  ) {
     let multipleVal = [];
 
     ast.forEach((astItem, index) => {
       let finalVals = [];
 
       let colorList = astItem.colorStops;
+
       colorList.forEach((color, id) => {
         let item = "";
         if (color.type === "hex") {
@@ -187,19 +187,6 @@ const transpileGradient = (decl) => {
   }
 };
 
-const rewriteUrlValue = (url, mode) => {
-  if (!url) return "";
-  let paths = url.split("/");
-  let newPaths = paths.map((p, id) => {
-    if (id === paths.length - 1) {
-      return p.replace(".", `.${mode}.`);
-    }
-    return p;
-  });
-
-  return newPaths.join("/");
-};
-
 const transpileUrlValue = (decl, theme) => {
   let { nodes: valueNodes } = valueParser(decl.value);
   let pureValNodes = valueNodes.filter((node) => node.type !== "space");
@@ -228,6 +215,7 @@ const transpileCompositionValue = (decl) => {
   const finalVals = [];
 
   if (pureValNodes.length) {
+    console.log("pureValNodes", JSON.stringify(pureValNodes));
     pureValNodes.forEach((node, id) => {
       let item = "";
       if (isHexColor(node) || isColorKeyWords(node.value)) {
@@ -267,6 +255,24 @@ const transpileCompositionValue = (decl) => {
   }
 };
 
+const processCssProp = (decl) => {
+  if (compositionProps.includes(decl.prop)) {
+    if (decl.value.includes("-gradient(")) {
+      return decl.prop;
+    }
+
+    if (decl.value.includes("url(")) {
+      if (["content", "border-image", "background-image"].includes(decl.prop)) {
+        return decl.prop;
+      }
+      return `${decl.prop}-image`;
+    }
+    return `${decl.prop}-color`;
+  }
+
+  return decl.prop;
+};
+
 const processCssValue = (decl) => {
   // 普通 color value  直接  返回
   // 复合 或者 包含 color value 的  匹配 输出 值
@@ -274,7 +280,6 @@ const processCssValue = (decl) => {
 
   let parsedValue = valueParser(decl.value);
   let { nodes: valueNodes } = parsedValue;
-  console.log(valueNodes);
 
   if (ignoreColor.includes(decl.value)) {
     return decl.value;
@@ -293,15 +298,17 @@ const processCssValue = (decl) => {
   } else if (valueNodes.length === 1 && isColorFuncHasOpacity(valueNodes[0])) {
     // rgba hlsa 带透明度的颜色值不处理
     return decl.value;
-  } else if (decl.value.includes("url(")) {
-    // url 已经前置处理
-    return decl.value;
-  } else if (decl.value.includes("-gradient(")) {
+  } else if (
+    decl.value.includes("-gradient(") &&
+    !decl.value.includes("url(")
+  ) {
     // 处理 conic-/linear-/radial-gradient ,暂不支持repeat
     return transpileGradient(decl);
+  } else if (decl.value.includes("-gradient(") && decl.value.includes("url(")) {
+    // 这种情况有点复杂，还没想好怎么处理，一般场景很少
+    return decl.value;
   } else {
     //  处理复合属性 类似： #333 1px solid
-    console.log("111");
     return transpileCompositionValue(decl);
   }
 };
