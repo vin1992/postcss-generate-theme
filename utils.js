@@ -215,7 +215,6 @@ const transpileCompositionValue = (decl) => {
   const finalVals = [];
 
   if (pureValNodes.length) {
-    console.log("pureValNodes", JSON.stringify(pureValNodes));
     pureValNodes.forEach((node, id) => {
       let item = "";
       if (isHexColor(node) || isColorKeyWords(node.value)) {

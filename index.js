@@ -16,10 +16,10 @@ const {
   transpileUrlValue,
 } = require("./utils");
 
-let postcss = require("postcss");
-let { readFile, writeFile, readFileSync } = require("fs");
+// let postcss = require("postcss");
+// let { readFile, writeFile, readFileSync } = require("fs");
 
-const plugin = (options = {}) => {
+module.exports = (options = {}) => {
   let dark = options.darkSelector || ".theme-dark";
   let night = options.nightSelector || ".theme-night";
 
@@ -88,17 +88,17 @@ const plugin = (options = {}) => {
   };
 };
 
-plugin.postcss = true;
-// module.exports.postcss = true;
+// plugin.postcss = true;
+module.exports.postcss = true;
 
-readFile("./a.css", (err, data) => {
-  if (err) throw err;
-  postcss([plugin])
-    .process(data, { from: "./a.css" })
-    .then((res) => {
-      writeFile("a.out.css", res.css, (err) => {
-        if (err) throw err;
-        console.log("The file has been saved!");
-      });
-    });
-});
+// readFile("./a.css", (err, data) => {
+//   if (err) throw err;
+//   postcss([plugin])
+//     .process(data, { from: "./a.css" })
+//     .then((res) => {
+//       writeFile("a.out.css", res.css, (err) => {
+//         if (err) throw err;
+//         console.log("The file has been saved!");
+//       });
+//     });
+// });
