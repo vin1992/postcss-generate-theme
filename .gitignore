@@ -1,6 +1,4 @@
 node_modules
 plugin.log
 .vscode/
-a.css
-a.out.css
-a.html
+test/
