@@ -13,11 +13,12 @@ const {
   processCssValue,
   processSelector,
   processCssProp,
+  processRgbaAndHslaValue,
   transpileUrlValue,
 } = require("./utils");
 
 // let postcss = require("postcss");
-// let { readFile, writeFile, readFileSync } = require("fs");
+// let { readFile, writeFile } = require("fs");
 
 module.exports = (options = {}) => {
   let dark = options.darkSelector || ".theme-dark";
@@ -55,6 +56,17 @@ module.exports = (options = {}) => {
 
                 let darkVal = transpileUrlValue(decl, "dark");
                 let nightVal = transpileUrlValue(decl, "night");
+
+                darkAppendRules.push({ prop, value: darkVal });
+                nightAppendRules.push({ prop, value: nightVal });
+              } else if (
+                decl.value.includes("rgba(") ||
+                decl.value.includes("hsla(")
+              ) {
+                let prop = processCssProp(decl);
+
+                let darkVal = processRgbaAndHslaValue(decl, "dark");
+                let nightVal = processRgbaAndHslaValue(decl, "night");
 
                 darkAppendRules.push({ prop, value: darkVal });
                 nightAppendRules.push({ prop, value: nightVal });
