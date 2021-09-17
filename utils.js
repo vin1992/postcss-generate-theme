@@ -70,7 +70,7 @@ const transformColorValToHex = (colorValue) => {
 };
 
 const getModeCssVariable = (lightVal, prop) => {
-  let { name: cssVaribleName } = findModeCssValue(lightVal, prop);
+  let { name: cssVaribleName } = findModeCssValue(lightVal, prop) || {};
 
   if (!cssVaribleName) {
     return lightVal;
@@ -80,7 +80,7 @@ const getModeCssVariable = (lightVal, prop) => {
 };
 
 const getModeColor = (lightVal, theme, prop) => {
-  let themeColors = findModeCssValue(lightVal, prop)?.value;
+  let { value: themeColors } = findModeCssValue(lightVal, prop) || {};
   if (!themeColors) {
     return "";
   }
