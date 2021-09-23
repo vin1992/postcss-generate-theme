@@ -68,8 +68,16 @@ module.exports = (options = {}) => {
                 let darkVal = processRgbaAndHslaValue(decl, "dark");
                 let nightVal = processRgbaAndHslaValue(decl, "night");
 
-                darkAppendRules.push({ prop, value: darkVal });
-                nightAppendRules.push({ prop, value: nightVal });
+                darkAppendRules.push({
+                  prop,
+                  value: darkVal,
+                  important: !!decl.important,
+                });
+                nightAppendRules.push({
+                  prop,
+                  value: nightVal,
+                  important: !!decl.important,
+                });
               } else {
                 decl.value = processCssValue(decl);
               }
@@ -103,12 +111,12 @@ module.exports = (options = {}) => {
 // plugin.postcss = true;
 module.exports.postcss = true;
 
-// readFile("./a.css", (err, data) => {
+// readFile("./test/a.css", (err, data) => {
 //   if (err) throw err;
 //   postcss([plugin])
-//     .process(data, { from: "./a.css" })
+//     .process(data, { from: "./test/a.css" })
 //     .then((res) => {
-//       writeFile("a.out.css", res.css, (err) => {
+//       writeFile("./test/a.out.css", res.css, (err) => {
 //         if (err) throw err;
 //         console.log("The file has been saved!");
 //       });
