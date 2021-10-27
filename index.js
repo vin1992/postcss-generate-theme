@@ -1,7 +1,7 @@
 /*
  * @Author: xuzhigang01@corp.netease.com
  * @Date: 2021-06-16 22:05:07
- * @LastEditTime: 2021-10-26 22:45:25
+ * @LastEditTime: 2021-10-27 22:55:44
  * @LastEditors: Please set LastEditors
  * @Description: 主题色样式生成
  * @FilePath: /gen-theme/index.js
@@ -18,7 +18,10 @@ const {
 } = require("./utils");
 
 // let postcss = require("postcss");
-// let { readFile, writeFile } = require("fs");
+// let { readFile, writeFile, readFileSync } = require("fs");
+let { readFileSync } = require("fs");
+
+let themeCssVariable = readFileSync("./theme.css", "utf8");
 
 module.exports = (options = {}) => {
   let dark = options.darkSelector || ".theme-dark";
@@ -27,6 +30,8 @@ module.exports = (options = {}) => {
   return {
     postcssPlugin: "postcss-generate-theme",
     Root(root, { Rule }) {
+      root.prepend(themeCssVariable);
+
       root.walk((node) => {
         let last = node;
 
@@ -161,6 +166,7 @@ module.exports = (options = {}) => {
 };
 
 // plugin.postcss = true;
+
 module.exports.postcss = true;
 
 // readFile("./test/a.css", (err, data) => {
