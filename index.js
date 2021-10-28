@@ -19,9 +19,12 @@ const {
 
 // let postcss = require("postcss");
 // let { readFile, writeFile, readFileSync } = require("fs");
-let { readFileSync } = require("fs");
 
-let themeCssVariable = readFileSync("./theme.css", "utf8");
+const { readFileSync } = require("fs");
+const path = require("path");
+
+let filePath = path.resolve(__dirname, "theme.css");
+let themeCssVariable = readFileSync(filePath, "utf8");
 
 module.exports = (options = {}) => {
   let dark = options.darkSelector || ".theme-dark";
@@ -57,10 +60,6 @@ module.exports = (options = {}) => {
                 decl.value.includes("url(") &&
                 !decl.value.includes("-gradient(")
               ) {
-                if (decl.prev()?.type === "comment") {
-                  console.log("comment", decl.prev().text);
-                }
-
                 let prop = processCssProp(decl);
 
                 let prevNode = decl.prev();
@@ -166,7 +165,6 @@ module.exports = (options = {}) => {
 };
 
 // plugin.postcss = true;
-
 module.exports.postcss = true;
 
 // readFile("./test/a.css", (err, data) => {

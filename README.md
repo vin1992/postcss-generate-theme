@@ -100,6 +100,32 @@
 1. 需要将日夜间（还有深色模式）对应的三种图片确保放在了同一个文件夹下
 
 2. 插件会在深色和夜间模式下，会在日间图片扩展名 (比如`.png`) 前追加`.dark` 和 `.night` ，所以命名图片的时候需要遵循上面的的规则，确保生成后的图片路径是真实存在的。
+3. 如果遇到设计中可能没有深色或夜间对应的图片的场景，目前也可以通过注释的方式告诉插件不需要生成多余的图片路径。
+4. 怎么注释：注释需要写在目标属性的上方， 不需要深色 就注释`/* no dark */`，不需要夜间 就注释 `/* no night */`，都不需要 就注释 `/* no dark no night */`。 单词之间需要保留空格
+
+```css
+/* 处理前 */
+.container {
+  /* no dark  */
+  background: url("./img/bg.png");
+  border-image: url("./img/border.png");
+}
+/* 处理后 */
+.container {
+  /* no dark  */
+  background: url("./img/bg.png");
+  border-image: url("./img/border.png");
+}
+
+.theme-dark .container {
+  border-image: url("./img/border.dark.png");
+}
+
+.theme-night .container {
+  background: url("./img/bg.night.png");
+  border-image: url("./img/border.night.png");
+}
+```
 
 ## 使用
 
