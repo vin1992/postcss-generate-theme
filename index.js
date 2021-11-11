@@ -27,13 +27,20 @@ let filePath = path.resolve(__dirname, "theme.css");
 let themeCssVariable = readFileSync(filePath, "utf8");
 
 module.exports = (options = {}) => {
-  let dark = options.darkSelector || ".theme-dark";
-  let night = options.nightSelector || ".theme-night";
+  const baseOptions = {
+    darkSelector: ".theme-dark",
+    nightSelector: ".theme-night",
+    inject: true,
+  };
+
+  const _options = Object.assign(baseOptions, options);
+
+  const { darkSelector: dark, nightSelector: night, inject } = _options;
 
   return {
     postcssPlugin: "postcss-generate-theme",
     Root(root, { Rule }) {
-      root.prepend(themeCssVariable);
+      inject && root.prepend(themeCssVariable);
 
       root.walk((node) => {
         let last = node;
@@ -169,7 +176,7 @@ module.exports.postcss = true;
 
 // readFile("./test/a.css", (err, data) => {
 //   if (err) throw err;
-//   postcss([plugin])
+//   postcss([plugin({ inject: false, nightSelector: ".is-night" })])
 //     .process(data, { from: "./test/a.css" })
 //     .then((res) => {
 //       writeFile("./test/a.out.css", res.css, (err) => {
