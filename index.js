@@ -17,30 +17,43 @@ const {
   transpileUrlValue,
 } = require("./utils");
 
+const getModeCssVariableStr = require("./css-variable");
+
 // let postcss = require("postcss");
 // let { readFile, writeFile, readFileSync } = require("fs");
-
-const { readFileSync } = require("fs");
-const path = require("path");
-
-let filePath = path.resolve(__dirname, "theme.css");
-let themeCssVariable = readFileSync(filePath, "utf8");
 
 module.exports = (options = {}) => {
   const baseOptions = {
     darkSelector: ".theme-dark",
     nightSelector: ".theme-night",
     inject: true,
+    disable: false,
   };
 
   const _options = Object.assign(baseOptions, options);
 
-  const { darkSelector: dark, nightSelector: night, inject } = _options;
+  const {
+    darkSelector: dark,
+    nightSelector: night,
+    inject,
+    disable,
+  } = _options;
+
+  const emptyPlugin = {
+    postcssPlugin: "postcss-generate-theme",
+  };
+
+  if (disable) {
+    return emptyPlugin;
+  }
 
   return {
-    postcssPlugin: "postcss-generate-theme",
+    ...emptyPlugin,
     Root(root, { Rule }) {
-      inject && root.prepend(themeCssVariable);
+      if (inject) {
+        let themeCssVariable = getModeCssVariableStr(dark, night);
+        root.prepend(themeCssVariable);
+      }
 
       root.walk((node) => {
         let last = node;
@@ -171,12 +184,19 @@ module.exports = (options = {}) => {
   };
 };
 
-// plugin.postcss = true;
 module.exports.postcss = true;
+// plugin.postcss = true;
 
 // readFile("./test/a.css", (err, data) => {
 //   if (err) throw err;
-//   postcss([plugin({ inject: false, nightSelector: ".is-night" })])
+//   postcss([
+//     plugin({
+//       inject: true,
+//       disable: true,
+//       nightSelector: ".is-night",
+//       darkSelector: ".is-dark",
+//     }),
+//   ])
 //     .process(data, { from: "./test/a.css" })
 //     .then((res) => {
 //       writeFile("./test/a.out.css", res.css, (err) => {
