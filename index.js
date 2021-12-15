@@ -17,10 +17,12 @@ const {
   transpileUrlValue,
 } = require("./utils");
 
-const getModeCssVariableStr = require("./css-variable");
-
 // let postcss = require("postcss");
 // let { readFile, writeFile, readFileSync } = require("fs");
+// const path = require("path");
+
+// let filePath = path.resolve(__dirname, "theme.css");
+// const themeCssVariable = readFileSync(filePath, "utf8");
 
 module.exports = (options = {}) => {
   const baseOptions = {
@@ -32,12 +34,7 @@ module.exports = (options = {}) => {
 
   const _options = Object.assign(baseOptions, options);
 
-  const {
-    darkSelector: dark,
-    nightSelector: night,
-    inject,
-    disable,
-  } = _options;
+  const { darkSelector: dark, nightSelector: night, disable } = _options;
 
   const emptyPlugin = {
     postcssPlugin: "postcss-generate-theme",
@@ -50,11 +47,6 @@ module.exports = (options = {}) => {
   return {
     ...emptyPlugin,
     Root(root, { Rule }) {
-      if (inject) {
-        let themeCssVariable = getModeCssVariableStr(dark, night);
-        root.prepend(themeCssVariable);
-      }
-
       root.walk((node) => {
         let last = node;
 
@@ -191,7 +183,6 @@ module.exports.postcss = true;
 //   if (err) throw err;
 //   postcss([
 //     plugin({
-//       inject: true,
 //       disable: true,
 //       nightSelector: ".is-night",
 //       darkSelector: ".is-dark",
