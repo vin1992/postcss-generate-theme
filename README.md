@@ -175,10 +175,6 @@ module.exports = {
 
 类型: `string`. 默认值: `.theme-night`.
 
-### `inject`
-
-类型: `boolean`. 默认值: `true`. 表示是否注入 css 变量色板，默认注入.
-
 ### `disable`
 
 类型: `boolean`. 默认值: `false`. 表示是否禁用插件，默认不禁用.
