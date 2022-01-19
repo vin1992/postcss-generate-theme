@@ -17,6 +17,8 @@ const {
   transpileUrlValue,
 } = require("./utils");
 
+const getModeCssVariableStr = require("./css-variable");
+
 // let postcss = require("postcss");
 // let { readFile, writeFile, readFileSync } = require("fs");
 // const path = require("path");
@@ -24,17 +26,25 @@ const {
 // let filePath = path.resolve(__dirname, "theme.css");
 // const themeCssVariable = readFileSync(filePath, "utf8");
 
-module.exports = (options = {}) => {
+const plugin = (options = {}) => {
   const baseOptions = {
     darkSelector: ".theme-dark",
     nightSelector: ".theme-night",
-    inject: true,
+    append: true,
     disable: false,
   };
 
+  let hasInject = false;
+  // console.log("执行postcss");
+
   const _options = Object.assign(baseOptions, options);
 
-  const { darkSelector: dark, nightSelector: night, disable } = _options;
+  const {
+    darkSelector: dark,
+    nightSelector: night,
+    append,
+    disable,
+  } = _options;
 
   const emptyPlugin = {
     postcssPlugin: "postcss-generate-theme",
@@ -47,6 +57,10 @@ module.exports = (options = {}) => {
   return {
     ...emptyPlugin,
     Root(root, { Rule }) {
+      if (append && !hasInject) {
+        root.prepend(getModeCssVariableStr(dark, night));
+        hasInject = true;
+      }
       root.walk((node) => {
         let last = node;
 
@@ -176,14 +190,14 @@ module.exports = (options = {}) => {
   };
 };
 
-module.exports.postcss = true;
-// plugin.postcss = true;
+plugin.postcss = true;
+module.exports = plugin;
 
 // readFile("./test/a.css", (err, data) => {
 //   if (err) throw err;
 //   postcss([
 //     plugin({
-//       disable: true,
+//       disable: false,
 //       nightSelector: ".is-night",
 //       darkSelector: ".is-dark",
 //     }),

@@ -43,7 +43,8 @@ const isColorKeyWords = (val) => {
 };
 const themeSelectorIncluded = (selectors = "", darkSelector, nightSelector) => {
   return (
-    selectors?.includes(darkSelector) || selectors?.includes(nightSelector)
+    !!selectors &&
+    (selectors.includes(darkSelector) || selectors.includes(nightSelector))
   );
 };
 
