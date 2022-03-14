@@ -1,7 +1,7 @@
 /*
  * @Author: xuzhigang01@corp.netease.com
  * @Date: 2021-06-16 22:05:07
- * @LastEditTime: 2021-10-27 22:55:44
+ * @LastEditTime: 2022-03-12 20:03:48
  * @LastEditors: Please set LastEditors
  * @Description: 主题色样式生成
  * @FilePath: /gen-theme/index.js
@@ -21,10 +21,6 @@ const getModeCssVariableStr = require("./css-variable");
 
 // let postcss = require("postcss");
 // let { readFile, writeFile, readFileSync } = require("fs");
-// const path = require("path");
-
-// let filePath = path.resolve(__dirname, "theme.css");
-// const themeCssVariable = readFileSync(filePath, "utf8");
 
 const plugin = (options = {}) => {
   const baseOptions = {

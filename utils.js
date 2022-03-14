@@ -1,7 +1,7 @@
 /*
  * @Author: xuzhigang01@corp.netease.com
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2021-09-06 22:28:28
+ * @LastEditTime: 2022-03-12 20:02:47
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
@@ -269,6 +269,7 @@ const transpileCompositionValue = (decl, theme) => {
             decl.prop,
             theme
           );
+          console.log("333", item);
         }
       } else if (["hsl", "hsla"].includes(node.value)) {
         let innerVal = node.nodes
@@ -293,6 +294,8 @@ const transpileCompositionValue = (decl, theme) => {
       finalVals[id] = item;
     });
 
+    console.log("finalVals", finalVals);
+
     return finalVals.join(" ");
   }
 };
@@ -304,9 +307,10 @@ const transpileRgbaAndHslaValue = (colorVal, prop, theme) => {
     let { type, value, nodes } = valueNodes[0];
     // 提取r,g,b value 转换为 十六进制的色值
     let hexColor = rh2hex(nodes, value);
+
     // 将十六进制的色值 与 色板匹配，找出对应的主题色，如果没有，原路返回
     let themeColor = getModeColor(hexColor, theme, prop);
-
+    console.log("themeColor", hexColor, themeColor);
     let opacityVal = getOpacityFromRgbaAndHsla(nodes);
 
     if (!themeColor) {
@@ -318,6 +322,8 @@ const transpileRgbaAndHslaValue = (colorVal, prop, theme) => {
 
     // 加上 透明度参数 a ，拼合最后的value值返回
     let finalVal = `${value}(${argNumStr},${opacityVal})`;
+
+    console.log("finalVal", finalVal);
 
     return finalVal;
   }
@@ -373,6 +379,9 @@ const processRgbaAndHslaValue = (decl, theme) => {
 };
 
 const processCssProp = (decl) => {
+  let parsedValue = valueParser(decl.value);
+  let { nodes: valueNodes } = parsedValue;
+
   if (compositionProps.includes(decl.prop)) {
     if (decl.value.includes("-gradient(")) {
       return decl.prop;
@@ -384,6 +393,15 @@ const processCssProp = (decl) => {
       }
       return `${decl.prop}-image`;
     }
+
+    // 如果是复合value , 且是 rgba 或者 hsla 色值，就不用简化css属性 直接输出原值，因为对于的value 也是重新生成已拼接好的
+    if (
+      (valueNodes.length > 1 && decl.value.includes("rgba(")) ||
+      decl.value.includes("hsla(")
+    ) {
+      return decl.prop;
+    }
+
     return `${decl.prop}-color`;
   }
 
@@ -425,6 +443,7 @@ const processCssValue = (decl) => {
     // 这种情况有点复杂，还没想好怎么处理，一般场景很少
     return decl.value;
   } else {
+    console.log("111");
     //  处理复合属性 类似： #333 1px solid
     return transpileCompositionValue(decl);
   }
