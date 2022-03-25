@@ -28,6 +28,8 @@ const plugin = (options = {}) => {
     nightSelector: ".theme-night",
     append: true,
     disable: false,
+    onlyPicture: false,
+    vite: true,
   };
 
   let hasInject = false;
@@ -40,6 +42,8 @@ const plugin = (options = {}) => {
     nightSelector: night,
     append,
     disable,
+    onlyPicture,
+    vite,
   } = _options;
 
   const emptyPlugin = {
@@ -77,70 +81,163 @@ const plugin = (options = {}) => {
             let darkAppendRules = [];
             let nightAppendRules = [];
 
-            needProcessDecls.forEach((decl) => {
-              if (
-                decl.value.includes("url(") &&
-                !decl.value.includes("-gradient(")
-              ) {
-                let prop = processCssProp(decl);
+            if (vite && onlyPicture) {
+              console.log("*********** onlyPicture **************");
+              needProcessDecls.forEach((decl) => {
+                if (
+                  decl.value.includes("url(") &&
+                  !decl.value.includes("-gradient(")
+                ) {
+                  let prop = processCssProp(decl);
 
-                let prevNode = decl.prev();
-
-                if (prevNode && prevNode.type === "comment" && prevNode.text) {
-                  let commentTxt = prevNode.text;
-
+                  let prevNode = decl.prev();
+                  console.log("===== enter  ======");
                   if (
-                    commentTxt.includes("no dark") &&
-                    !commentTxt.includes("no night")
+                    prevNode &&
+                    prevNode.type === "comment" &&
+                    prevNode.text
                   ) {
-                    let nightVal = transpileUrlValue(decl, "night");
-                    nightAppendRules.push({ prop, value: nightVal });
-                  } else if (
-                    !commentTxt.includes("no dark") &&
-                    commentTxt.includes("no night")
-                  ) {
+                    let commentTxt = prevNode.text;
+
+                    if (
+                      commentTxt.includes("no dark") &&
+                      !commentTxt.includes("no night")
+                    ) {
+                      let nightVal = transpileUrlValue(decl, "night");
+                      nightAppendRules.push({ prop, value: nightVal });
+                    } else if (
+                      !commentTxt.includes("no dark") &&
+                      commentTxt.includes("no night")
+                    ) {
+                      let darkVal = transpileUrlValue(decl, "dark");
+                      darkAppendRules.push({ prop, value: darkVal });
+                    } else if (
+                      !commentTxt.includes("no dark") &&
+                      !commentTxt.includes("no night")
+                    ) {
+                      let darkVal = transpileUrlValue(decl, "dark");
+                      let nightVal = transpileUrlValue(decl, "night");
+
+                      darkAppendRules.push({ prop, value: darkVal });
+                      nightAppendRules.push({ prop, value: nightVal });
+                    }
+                  } else {
                     let darkVal = transpileUrlValue(decl, "dark");
-                    darkAppendRules.push({ prop, value: darkVal });
-                  } else if (
-                    !commentTxt.includes("no dark") &&
-                    !commentTxt.includes("no night")
-                  ) {
-                    let darkVal = transpileUrlValue(decl, "dark");
                     let nightVal = transpileUrlValue(decl, "night");
+
+                    console.log("val", darkVal, nightVal);
 
                     darkAppendRules.push({ prop, value: darkVal });
                     nightAppendRules.push({ prop, value: nightVal });
                   }
-                } else {
-                  let darkVal = transpileUrlValue(decl, "dark");
-                  let nightVal = transpileUrlValue(decl, "night");
-
-                  darkAppendRules.push({ prop, value: darkVal });
-                  nightAppendRules.push({ prop, value: nightVal });
                 }
-              } else if (
-                decl.value.includes("rgba(") ||
-                decl.value.includes("hsla(")
-              ) {
-                let prop = processCssProp(decl);
+              });
+            } else if (vite && !onlyPicture) {
+              console.log("*********** !onlyPicture **************");
 
-                let darkVal = processRgbaAndHslaValue(decl, "dark");
-                let nightVal = processRgbaAndHslaValue(decl, "night");
+              needProcessDecls.forEach((decl) => {
+                if (
+                  decl.value.includes("url(") &&
+                  !decl.value.includes("-gradient(")
+                ) {
+                  // nothing todo
+                } else if (
+                  decl.value.includes("rgba(") ||
+                  decl.value.includes("hsla(")
+                ) {
+                  let prop = processCssProp(decl);
 
-                darkAppendRules.push({
-                  prop,
-                  value: darkVal,
-                  important: !!decl.important,
-                });
-                nightAppendRules.push({
-                  prop,
-                  value: nightVal,
-                  important: !!decl.important,
-                });
-              } else {
-                decl.value = processCssValue(decl);
-              }
-            });
+                  let darkVal = processRgbaAndHslaValue(decl, "dark");
+                  let nightVal = processRgbaAndHslaValue(decl, "night");
+
+                  darkAppendRules.push({
+                    prop,
+                    value: darkVal,
+                    important: !!decl.important,
+                  });
+                  nightAppendRules.push({
+                    prop,
+                    value: nightVal,
+                    important: !!decl.important,
+                  });
+                } else {
+                  decl.value = processCssValue(decl);
+                }
+              });
+            } else {
+              console.log("*********** Null **************");
+
+              needProcessDecls.forEach((decl) => {
+                if (
+                  decl.value.includes("url(") &&
+                  !decl.value.includes("-gradient(")
+                ) {
+                  let prop = processCssProp(decl);
+
+                  let prevNode = decl.prev();
+                  console.log("===== enter  ======");
+                  if (
+                    prevNode &&
+                    prevNode.type === "comment" &&
+                    prevNode.text
+                  ) {
+                    let commentTxt = prevNode.text;
+
+                    if (
+                      commentTxt.includes("no dark") &&
+                      !commentTxt.includes("no night")
+                    ) {
+                      let nightVal = transpileUrlValue(decl, "night");
+                      nightAppendRules.push({ prop, value: nightVal });
+                    } else if (
+                      !commentTxt.includes("no dark") &&
+                      commentTxt.includes("no night")
+                    ) {
+                      let darkVal = transpileUrlValue(decl, "dark");
+                      darkAppendRules.push({ prop, value: darkVal });
+                    } else if (
+                      !commentTxt.includes("no dark") &&
+                      !commentTxt.includes("no night")
+                    ) {
+                      let darkVal = transpileUrlValue(decl, "dark");
+                      let nightVal = transpileUrlValue(decl, "night");
+
+                      darkAppendRules.push({ prop, value: darkVal });
+                      nightAppendRules.push({ prop, value: nightVal });
+                    }
+                  } else {
+                    let darkVal = transpileUrlValue(decl, "dark");
+                    let nightVal = transpileUrlValue(decl, "night");
+
+                    console.log("val", darkVal, nightVal);
+
+                    darkAppendRules.push({ prop, value: darkVal });
+                    nightAppendRules.push({ prop, value: nightVal });
+                  }
+                } else if (
+                  decl.value.includes("rgba(") ||
+                  decl.value.includes("hsla(")
+                ) {
+                  let prop = processCssProp(decl);
+
+                  let darkVal = processRgbaAndHslaValue(decl, "dark");
+                  let nightVal = processRgbaAndHslaValue(decl, "night");
+
+                  darkAppendRules.push({
+                    prop,
+                    value: darkVal,
+                    important: !!decl.important,
+                  });
+                  nightAppendRules.push({
+                    prop,
+                    value: nightVal,
+                    important: !!decl.important,
+                  });
+                } else {
+                  decl.value = processCssValue(decl);
+                }
+              });
+            }
 
             if (darkAppendRules.length && !nightAppendRules.length) {
               let fixDark = new Rule({
