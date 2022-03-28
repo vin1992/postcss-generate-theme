@@ -19,9 +19,6 @@ const {
 
 const getModeCssVariableStr = require("./css-variable");
 
-// let postcss = require("postcss");
-// let { readFile, writeFile, readFileSync } = require("fs");
-
 const plugin = (options = {}) => {
   const baseOptions = {
     darkSelector: ".theme-dark",
@@ -33,7 +30,6 @@ const plugin = (options = {}) => {
   };
 
   let hasInject = false;
-  // console.log("执行postcss");
 
   const _options = Object.assign(baseOptions, options);
 
@@ -82,7 +78,6 @@ const plugin = (options = {}) => {
             let nightAppendRules = [];
 
             if (vite && onlyPicture) {
-              console.log("*********** onlyPicture **************");
               needProcessDecls.forEach((decl) => {
                 if (
                   decl.value.includes("url(") &&
@@ -91,7 +86,6 @@ const plugin = (options = {}) => {
                   let prop = processCssProp(decl);
 
                   let prevNode = decl.prev();
-                  console.log("===== enter  ======");
                   if (
                     prevNode &&
                     prevNode.type === "comment" &&
@@ -125,16 +119,12 @@ const plugin = (options = {}) => {
                     let darkVal = transpileUrlValue(decl, "dark");
                     let nightVal = transpileUrlValue(decl, "night");
 
-                    console.log("val", darkVal, nightVal);
-
                     darkAppendRules.push({ prop, value: darkVal });
                     nightAppendRules.push({ prop, value: nightVal });
                   }
                 }
               });
             } else if (vite && !onlyPicture) {
-              console.log("*********** !onlyPicture **************");
-
               needProcessDecls.forEach((decl) => {
                 if (
                   decl.value.includes("url(") &&
@@ -165,8 +155,6 @@ const plugin = (options = {}) => {
                 }
               });
             } else {
-              console.log("*********** Null **************");
-
               needProcessDecls.forEach((decl) => {
                 if (
                   decl.value.includes("url(") &&
@@ -175,7 +163,6 @@ const plugin = (options = {}) => {
                   let prop = processCssProp(decl);
 
                   let prevNode = decl.prev();
-                  console.log("===== enter  ======");
                   if (
                     prevNode &&
                     prevNode.type === "comment" &&
@@ -208,8 +195,6 @@ const plugin = (options = {}) => {
                   } else {
                     let darkVal = transpileUrlValue(decl, "dark");
                     let nightVal = transpileUrlValue(decl, "night");
-
-                    console.log("val", darkVal, nightVal);
 
                     darkAppendRules.push({ prop, value: darkVal });
                     nightAppendRules.push({ prop, value: nightVal });
