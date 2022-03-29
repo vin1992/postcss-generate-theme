@@ -269,7 +269,6 @@ const transpileCompositionValue = (decl, theme) => {
             decl.prop,
             theme
           );
-          console.log("333", item);
         }
       } else if (["hsl", "hsla"].includes(node.value)) {
         let innerVal = node.nodes
@@ -294,8 +293,6 @@ const transpileCompositionValue = (decl, theme) => {
       finalVals[id] = item;
     });
 
-    console.log("finalVals", finalVals);
-
     return finalVals.join(" ");
   }
 };
@@ -310,7 +307,6 @@ const transpileRgbaAndHslaValue = (colorVal, prop, theme) => {
 
     // 将十六进制的色值 与 色板匹配，找出对应的主题色，如果没有，原路返回
     let themeColor = getModeColor(hexColor, theme, prop);
-    console.log("themeColor", hexColor, themeColor);
     let opacityVal = getOpacityFromRgbaAndHsla(nodes);
 
     if (!themeColor) {
@@ -322,8 +318,6 @@ const transpileRgbaAndHslaValue = (colorVal, prop, theme) => {
 
     // 加上 透明度参数 a ，拼合最后的value值返回
     let finalVal = `${value}(${argNumStr},${opacityVal})`;
-
-    console.log("finalVal", finalVal);
 
     return finalVal;
   }
@@ -443,7 +437,6 @@ const processCssValue = (decl) => {
     // 这种情况有点复杂，还没想好怎么处理，一般场景很少
     return decl.value;
   } else {
-    console.log("111");
     //  处理复合属性 类似： #333 1px solid
     return transpileCompositionValue(decl);
   }
