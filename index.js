@@ -7,7 +7,11 @@
  * @FilePath: /gen-theme/index.js
  */
 
-const {
+import postcss from "postcss";
+import { readFile, writeFile } from "fs";
+import multimatch from "multimatch";
+
+import {
   themeSelectorIncluded,
   verifyDeclareProp,
   processCssValue,
@@ -15,18 +19,19 @@ const {
   processCssProp,
   processRgbaAndHslaValue,
   transpileUrlValue,
-} = require("./utils");
+} from "./utils.js";
 
-const getModeCssVariableStr = require("./css-variable");
+import getModeCssVariableStr from "./css-variable.js";
 
 const plugin = (options = {}) => {
   const baseOptions = {
     darkSelector: ".theme-dark",
     nightSelector: ".theme-night",
-    append: true,
-    disable: false,
-    onlyPicture: false,
-    vite: true,
+    append: true, // 是否注入css变量
+    disable: false, // 是否禁用插件
+    onlyPicture: false, // 是否只处理图片
+    vite: true, // 是否是在vite中
+    filter: "**/postcss-generate-theme/**", // 过滤不处理的目录
   };
 
   let hasInject = false;
@@ -40,6 +45,7 @@ const plugin = (options = {}) => {
     disable,
     onlyPicture,
     vite,
+    filter,
   } = _options;
 
   const emptyPlugin = {
@@ -53,6 +59,11 @@ const plugin = (options = {}) => {
   return {
     ...emptyPlugin,
     Root(root, { Rule }) {
+      console.log(" root.source.input.file", root.source.input.file);
+      let filePath = root.source.input.file;
+      // 过滤目录
+      if (multimatch(filePath, filter).length > 0) return;
+
       if (append && !hasInject) {
         root.prepend(getModeCssVariableStr(dark, night));
         hasInject = true;
@@ -269,22 +280,22 @@ const plugin = (options = {}) => {
 };
 
 plugin.postcss = true;
-module.exports = plugin;
+// module.exports = plugin;
 
-// readFile("./test/a.css", (err, data) => {
-//   if (err) throw err;
-//   postcss([
-//     plugin({
-//       disable: false,
-//       nightSelector: ".is-night",
-//       darkSelector: ".is-dark",
-//     }),
-//   ])
-//     .process(data, { from: "./test/a.css" })
-//     .then((res) => {
-//       writeFile("./test/a.out.css", res.css, (err) => {
-//         if (err) throw err;
-//         console.log("The file has been saved!");
-//       });
-//     });
-// });
+readFile("./test/a.css", (err, data) => {
+  if (err) throw err;
+  postcss([
+    plugin({
+      disable: false,
+      nightSelector: ".is-night",
+      darkSelector: ".is-dark",
+    }),
+  ])
+    .process(data, { from: "./test/a.css" })
+    .then((res) => {
+      writeFile("./test/a.out.css", res.css, (err) => {
+        if (err) throw err;
+        console.log("The file has been saved!");
+      });
+    });
+});

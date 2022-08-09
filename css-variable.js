@@ -132,4 +132,4 @@ const getModeCssVariableStr = (darkSelector, nightSelector) => {
     }`;
 };
 
-module.exports = getModeCssVariableStr;
+export default getModeCssVariableStr;

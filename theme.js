@@ -9,7 +9,8 @@
 
 // key   : light 色值
 // value : index=0 代表 dark 色值； index=1 代表 night 色值
-module.exports = {
+
+const theme = {
   "#fff_bg": {
     name: "--bg",
     value: ["#1d1d1e", "#1d1d1e"],
@@ -175,3 +176,5 @@ module.exports = {
     value: ["#924900", "#5b3813"],
   },
 };
+
+export default theme;

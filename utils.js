@@ -6,14 +6,14 @@
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
  */
-const color = require("color");
-const valueParser = require("postcss-value-parser");
-const shortenCssHex = require("shorten-css-hex");
-const Window = require("window");
-const gradient = require("gradient-parser");
-const cssColorKeyWords = require("css-color-keywords");
+import color from "color";
+import valueParser from "postcss-value-parser";
+import shortenCssHex from "shorten-css-hex";
+import Window from "window";
+import gradient from "gradient-parser";
+import cssColorKeyWords from "css-color-keywords";
 
-const theme = require("./theme");
+import theme from "./theme.js";
 
 const window = new Window();
 
@@ -454,7 +454,7 @@ const processSelector = (selector, themeSelector) => {
   }
 };
 
-module.exports = {
+export {
   isSupported,
   themeSelectorIncluded,
   verifyDeclareProp,
