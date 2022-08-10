@@ -19,9 +19,11 @@ import {
   processCssProp,
   processRgbaAndHslaValue,
   transpileUrlValue,
+  parseObjectToCssVariable,
 } from "./utils.js";
 
-import getModeCssVariableStr from "./css-variable.js";
+import theme from "./theme.js";
+// import getModeCssVariableStr from "./css-variable.js";
 
 const plugin = (options = {}) => {
   const baseOptions = {
@@ -31,7 +33,8 @@ const plugin = (options = {}) => {
     disable: false, // 是否禁用插件
     onlyPicture: false, // 是否只处理图片
     vite: true, // 是否是在vite中
-    filter: "**/postcss-generate-theme/**", // 过滤不处理的目录
+    filter: "**/postcss-generate-theme/**", // 过滤不处理的目录,支持字符串或者数组
+    customColorPanel: theme,
   };
 
   let hasInject = false;
@@ -46,6 +49,7 @@ const plugin = (options = {}) => {
     onlyPicture,
     vite,
     filter,
+    customColorPanel,
   } = _options;
 
   const emptyPlugin = {
@@ -65,7 +69,7 @@ const plugin = (options = {}) => {
       if (multimatch(filePath, filter).length > 0) return;
 
       if (append && !hasInject) {
-        root.prepend(getModeCssVariableStr(dark, night));
+        root.prepend(parseObjectToCssVariable(customColorPanel, dark, night));
         hasInject = true;
       }
       root.walk((node) => {

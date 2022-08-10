@@ -454,6 +454,27 @@ const processSelector = (selector, themeSelector) => {
   }
 };
 
+// 将自定义色板配置对象转换为css变量
+const parseObjectToCssVariable = (obj, darkSelector, nightSelector) => {
+  let lightStr = "";
+  let darkStr = "";
+  let nightStr = "";
+
+  for (let k in obj) {
+    if (k === "#fff_bg") {
+      lightStr += `${obj[k]["name"]}: #fff;`;
+    } else {
+      lightStr += `${obj[k]["name"]}: ${k};`;
+    }
+    darkStr += `${obj[k]["name"]}: ${obj[k]["value"][0]};`;
+    nightStr += `${obj[k]["name"]}: ${obj[k]["value"][1]};`;
+  }
+
+  let cssVaribleStr = `:root {${lightStr}} ${darkSelector} {${darkStr}} ${nightSelector} {${nightStr}}`;
+
+  return cssVaribleStr;
+};
+
 export {
   isSupported,
   themeSelectorIncluded,
@@ -463,4 +484,5 @@ export {
   processSelector,
   processRgbaAndHslaValue,
   transpileUrlValue,
+  parseObjectToCssVariable,
 };
