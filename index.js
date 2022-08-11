@@ -33,7 +33,7 @@ const plugin = (options = {}) => {
     disable: false, // 是否禁用插件
     onlyPicture: false, // 是否只处理图片
     vite: true, // 是否是在vite中
-    filter: "**/postcss-generate-theme/**", // 过滤不处理的目录,支持字符串或者数组
+    filter: "**/node_modules/**", // 过滤不处理的目录,支持字符串或者数组
     customColorPanel: theme,
   };
 

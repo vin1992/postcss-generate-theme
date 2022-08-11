@@ -96,16 +96,34 @@ const getModeColor = (lightVal, theme, prop) => {
 };
 
 const findModeCssValue = (lightVal, prop) => {
-  let key = lightVal;
   // 前景色 和 背景色 的 白色 区别命名索引key
-  if (
-    ["background", "background-color", "background-image"].includes(prop) &&
-    lightVal === "#fff"
-  ) {
-    key = `${key}_bg`;
+
+  let result = {};
+
+  for (let k in theme) {
+    if (theme[k]["light"] === lightVal) {
+      if (lightVal === "#fff") {
+        if (
+          ["background", "background-color", "background-image"].includes(prop)
+        ) {
+          result["name"] = "--bg";
+          result["value"] = [theme["--bg"]["dark"], theme["--bg"]["night"]];
+        } else {
+          result["name"] = "--whiteFF";
+          result["value"] = [
+            theme["--whiteFF"]["dark"],
+            theme["--whiteFF"]["night"],
+          ];
+        }
+      } else {
+        result["name"] = k;
+        result["value"] = [theme[k]["dark"], theme[k]["night"]];
+      }
+      break;
+    }
   }
 
-  return theme[key];
+  return result;
 };
 
 const rewriteUrlValue = (url, mode) => {
@@ -461,13 +479,9 @@ const parseObjectToCssVariable = (obj, darkSelector, nightSelector) => {
   let nightStr = "";
 
   for (let k in obj) {
-    if (k === "#fff_bg") {
-      lightStr += `${obj[k]["name"]}: #fff;`;
-    } else {
-      lightStr += `${obj[k]["name"]}: ${k};`;
-    }
-    darkStr += `${obj[k]["name"]}: ${obj[k]["value"][0]};`;
-    nightStr += `${obj[k]["name"]}: ${obj[k]["value"][1]};`;
+    lightStr += `${k}: ${obj[k]["light"]};`;
+    darkStr += `${k}: ${obj[k]["dark"]};`;
+    nightStr += `${k}: ${obj[k]["night"]};`;
   }
 
   let cssVaribleStr = `:root {${lightStr}} ${darkSelector} {${darkStr}} ${nightSelector} {${nightStr}}`;
