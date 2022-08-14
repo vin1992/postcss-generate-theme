@@ -9,11 +9,13 @@
 
 const theme = {
   "--bg": {
+    // 命名不可冲突
     light: "#fff",
     dark: "#1d1d1e",
     night: "#1d1d1e",
   },
   "--whiteFF": {
+    // 命名不可冲突
     light: "#fff",
     dark: "#ddd",
     night: "#888",

@@ -13,8 +13,6 @@ import Window from "window";
 import gradient from "gradient-parser";
 import cssColorKeyWords from "css-color-keywords";
 
-import theme from "./theme.js";
-
 const window = new Window();
 
 const compositionProps = [
@@ -96,9 +94,8 @@ const getModeColor = (lightVal, theme, prop) => {
 };
 
 const findModeCssValue = (lightVal, prop) => {
-  // 前景色 和 背景色 的 白色 区别命名索引key
-
   let result = {};
+  let theme = global._customColorPanel;
 
   for (let k in theme) {
     if (theme[k]["light"] === lightVal) {
@@ -238,6 +235,7 @@ const transpileGradient = (decl, theme) => {
 };
 
 const transpileUrlValue = (decl, theme) => {
+  console.log("transpileUrlValue");
   let { nodes: valueNodes } = valueParser(decl.value);
   let pureValNodes = valueNodes.filter((node) => node.type !== "space");
 

@@ -32,7 +32,7 @@ const plugin = (options = {}) => {
     append: true, // 是否注入css变量
     disable: false, // 是否禁用插件
     onlyPicture: false, // 是否只处理图片
-    vite: true, // 是否是在vite中
+    vite: false, // 是否是在vite中
     filter: "**/node_modules/**", // 过滤不处理的目录,支持字符串或者数组
     customColorPanel: theme,
   };
@@ -51,6 +51,8 @@ const plugin = (options = {}) => {
     filter,
     customColorPanel,
   } = _options;
+
+  global._customColorPanel = customColorPanel;
 
   const emptyPlugin = {
     postcssPlugin: "postcss-generate-theme",
