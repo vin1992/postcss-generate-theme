@@ -1,6 +1,6 @@
 {
   "name": "@mf2e/postcss-generate-theme",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "主题色生成插件",
   "main": "index.js",
   "scripts": {

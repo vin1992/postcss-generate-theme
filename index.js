@@ -1,7 +1,7 @@
 /*
  * @Author: xuzhigang01@corp.netease.com
  * @Date: 2021-06-16 22:05:07
- * @LastEditTime: 2022-08-18 11:32:19
+ * @LastEditTime: 2022-08-18 13:54:52
  * @LastEditors: 徐志刚 xuzhigang01@corp.netease.com
  * @Description: 主题色样式生成
  * @FilePath: /gen-theme/index.js
@@ -32,7 +32,7 @@ const plugin = (options = {}) => {
     append: true, // 是否注入css变量
     disable: false, // 是否禁用插件
     onlyPicture: false, // 是否只处理图片
-    vite: false, // 是否是在vite中
+    vite: true, // 是否是在vite中
     filter: '**/node_modules/**', // 过滤不处理的目录,支持字符串或者数组
     customColorPanel: theme,
   }
@@ -100,28 +100,30 @@ const plugin = (options = {}) => {
                   let prop = processCssProp(decl)
 
                   let prevNode = decl.prev()
-                  if (prevNode && prevNode.type === 'comment' && prevNode.text) {
-                    let commentTxt = prevNode.text
+                  let commentTxt = prevNode && prevNode.type === 'comment' && prevNode.text ? prevNode.text : ''
 
-                    if (commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
-                      let nightVal = transpileUrlValue(decl, 'night')
-                      nightAppendRules.push({ prop, value: nightVal })
-                    } else if (!commentTxt.includes('no dark') && commentTxt.includes('no night')) {
-                      let darkVal = transpileUrlValue(decl, 'dark')
-                      darkAppendRules.push({ prop, value: darkVal })
-                    } else if (!commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
+                  if (commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
+                    let nightVal = transpileUrlValue(decl, 'night')
+                    nightAppendRules.push({ prop, value: nightVal })
+                  } else if (!commentTxt.includes('no dark') && commentTxt.includes('no night')) {
+                    let darkVal = transpileUrlValue(decl, 'dark')
+                    darkAppendRules.push({ prop, value: darkVal })
+                  } else if (!commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
+                    // 处理 默认图片主题色
+                    if (commentTxt.includes('default dark') && !commentTxt.includes('default night')) {
+                      darkAppendRules.push({ prop: 'opacity', value: '0.9' })
+                    } else if (!commentTxt.includes('default dark') && commentTxt.includes('default night')) {
+                      nightAppendRules.push({ prop: 'opacity', value: '0.5' })
+                    } else if (commentTxt.includes('default dark') && commentTxt.includes('default night')) {
+                      darkAppendRules.push({ prop: 'opacity', value: '0.9' })
+                      nightAppendRules.push({ prop: 'opacity', value: '0.5' })
+                    } else {
                       let darkVal = transpileUrlValue(decl, 'dark')
                       let nightVal = transpileUrlValue(decl, 'night')
 
                       darkAppendRules.push({ prop, value: darkVal })
                       nightAppendRules.push({ prop, value: nightVal })
                     }
-                  } else {
-                    let darkVal = transpileUrlValue(decl, 'dark')
-                    let nightVal = transpileUrlValue(decl, 'night')
-
-                    darkAppendRules.push({ prop, value: darkVal })
-                    nightAppendRules.push({ prop, value: nightVal })
                   }
                 }
               })
@@ -155,28 +157,30 @@ const plugin = (options = {}) => {
                   let prop = processCssProp(decl)
 
                   let prevNode = decl.prev()
-                  if (prevNode && prevNode.type === 'comment' && prevNode.text) {
-                    let commentTxt = prevNode.text
+                  let commentTxt = prevNode && prevNode.type === 'comment' && prevNode.text ? prevNode.text : ''
 
-                    if (commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
-                      let nightVal = transpileUrlValue(decl, 'night')
-                      nightAppendRules.push({ prop, value: nightVal })
-                    } else if (!commentTxt.includes('no dark') && commentTxt.includes('no night')) {
-                      let darkVal = transpileUrlValue(decl, 'dark')
-                      darkAppendRules.push({ prop, value: darkVal })
-                    } else if (!commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
+                  if (commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
+                    let nightVal = transpileUrlValue(decl, 'night')
+                    nightAppendRules.push({ prop, value: nightVal })
+                  } else if (!commentTxt.includes('no dark') && commentTxt.includes('no night')) {
+                    let darkVal = transpileUrlValue(decl, 'dark')
+                    darkAppendRules.push({ prop, value: darkVal })
+                  } else if (!commentTxt.includes('no dark') && !commentTxt.includes('no night')) {
+                    // 处理 默认图片主题色
+                    if (commentTxt.includes('default dark') && !commentTxt.includes('default night')) {
+                      darkAppendRules.push({ prop: 'opacity', value: '0.9' })
+                    } else if (!commentTxt.includes('default dark') && commentTxt.includes('default night')) {
+                      nightAppendRules.push({ prop: 'opacity', value: '0.5' })
+                    } else if (commentTxt.includes('default dark') && commentTxt.includes('default night')) {
+                      darkAppendRules.push({ prop: 'opacity', value: '0.9' })
+                      nightAppendRules.push({ prop: 'opacity', value: '0.5' })
+                    } else {
                       let darkVal = transpileUrlValue(decl, 'dark')
                       let nightVal = transpileUrlValue(decl, 'night')
 
                       darkAppendRules.push({ prop, value: darkVal })
                       nightAppendRules.push({ prop, value: nightVal })
                     }
-                  } else {
-                    let darkVal = transpileUrlValue(decl, 'dark')
-                    let nightVal = transpileUrlValue(decl, 'night')
-
-                    darkAppendRules.push({ prop, value: darkVal })
-                    nightAppendRules.push({ prop, value: nightVal })
                   }
                 } else if (decl.value.includes('rgba(') || decl.value.includes('hsla(')) {
                   let prop = processCssProp(decl)
