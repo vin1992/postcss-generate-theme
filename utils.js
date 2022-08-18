@@ -1,493 +1,434 @@
 /*
  * @Author: xuzhigang01@corp.netease.com
  * @Date: 2021-07-08 22:32:27
- * @LastEditTime: 2022-03-12 20:02:47
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-08-18 11:31:21
+ * @LastEditors: 徐志刚 xuzhigang01@corp.netease.com
  * @Description: In User Settings Edit
  * @FilePath: /postcss-generate-theme/utils.js
  */
-import color from "color";
-import valueParser from "postcss-value-parser";
-import shortenCssHex from "shorten-css-hex";
-import Window from "window";
-import gradient from "gradient-parser";
-import cssColorKeyWords from "css-color-keywords";
-
-const window = new Window();
+const color = require('color')
+const valueParser = require('postcss-value-parser')
+const shortenCssHex = require('shorten-css-hex')
+const Window = require('window')
+const gradient = require('gradient-parser')
+const cssColorKeyWords = require('css-color-keywords')
+const window = new Window()
 
 const compositionProps = [
-  "border",
-  "border-top",
-  "border-right",
-  "border-bottom",
-  "border-left",
-  "background",
-  "background-image",
-  "border-image",
-  "content",
-  "box-shadow",
-  "text-shadow",
-  "outline",
-  "list-style",
-];
-const ignoreColor = ["none", "transparent", "currentColor"];
+  'border',
+  'border-top',
+  'border-right',
+  'border-bottom',
+  'border-left',
+  'background',
+  'background-image',
+  'border-image',
+  'content',
+  'box-shadow',
+  'text-shadow',
+  'outline',
+  'list-style',
+]
+const ignoreColor = ['none', 'transparent', 'currentColor']
 
 // 判断是否支持css 变量
-const isSupported =
-  window.CSS && window.CSS.supports && window.CSS.supports("--a", 0);
+const isSupported = window.CSS && window.CSS.supports && window.CSS.supports('--a', 0)
 
 const isColorKeyWords = (val) => {
-  return !!cssColorKeyWords[val];
-};
-const themeSelectorIncluded = (selectors = "", darkSelector, nightSelector) => {
-  return (
-    !!selectors &&
-    (selectors.includes(darkSelector) || selectors.includes(nightSelector))
-  );
-};
+  return !!cssColorKeyWords[val]
+}
+const themeSelectorIncluded = (selectors = '', darkSelector, nightSelector) => {
+  return !!selectors && (selectors.includes(darkSelector) || selectors.includes(nightSelector))
+}
 
 const isColorFuncNoOpacity = (o) => {
-  return o.type === "function" && ["rgb", "hsl"].includes(o.value);
-};
+  return o.type === 'function' && ['rgb', 'hsl'].includes(o.value)
+}
 
 const isColorFuncHasOpacity = (o) => {
-  return o.type === "function" && ["rgba", "hsla"].includes(o.value);
-};
+  return o.type === 'function' && ['rgba', 'hsla'].includes(o.value)
+}
 
 const isHexColor = (o) => {
-  return o.type === "word" && o.value.indexOf("#") === 0;
-};
+  return o.type === 'word' && o.value.indexOf('#') === 0
+}
 
 // 判断是否是需要处理的css属性
 const verifyDeclareProp = (decl) => {
-  return compositionProps.includes(decl.prop) || /color$/.test(decl.prop);
-};
+  return compositionProps.includes(decl.prop) || /color$/.test(decl.prop)
+}
 
 const transformColorValToHex = (colorValue) => {
-  let _color = colorValue.includes("#") ? colorValue : color(colorValue).hex();
-  return shortenCssHex(_color).toLowerCase();
-};
+  let _color = colorValue.includes('#') ? colorValue : color(colorValue).hex()
+  return shortenCssHex(_color).toLowerCase()
+}
 
 const getModeCssVariable = (lightVal, prop) => {
-  let { name: cssVaribleName } = findModeCssValue(lightVal, prop) || {};
+  let { name: cssVaribleName } = findModeCssValue(lightVal, prop) || {}
 
   if (!cssVaribleName) {
-    return lightVal;
+    return lightVal
   }
 
-  return `var(${cssVaribleName})`;
-};
+  return `var(${cssVaribleName})`
+}
 
 const getModeColor = (lightVal, theme, prop) => {
-  let { value: themeColors } = findModeCssValue(lightVal, prop) || {};
+  let { value: themeColors } = findModeCssValue(lightVal, prop) || {}
   if (!themeColors) {
-    return "";
+    return ''
   }
 
-  let [darkColor, nightColor] = themeColors;
+  let [darkColor, nightColor] = themeColors
 
-  if (theme === "dark") {
-    return darkColor;
-  } else if (theme === "night") {
-    return nightColor;
+  if (theme === 'dark') {
+    return darkColor
+  } else if (theme === 'night') {
+    return nightColor
   }
-};
+}
 
 const findModeCssValue = (lightVal, prop) => {
-  let result = {};
-  let theme = global._customColorPanel;
+  let result = {}
+  let theme = global._customColorPanel
 
   for (let k in theme) {
-    if (theme[k]["light"] === lightVal) {
-      if (lightVal === "#fff") {
-        if (
-          ["background", "background-color", "background-image"].includes(prop)
-        ) {
-          result["name"] = "--bg";
-          result["value"] = [theme["--bg"]["dark"], theme["--bg"]["night"]];
+    if (theme[k]['light'] === lightVal) {
+      if (lightVal === '#fff') {
+        if (['background', 'background-color', 'background-image'].includes(prop)) {
+          result['name'] = '--bg'
+          result['value'] = [theme['--bg']['dark'], theme['--bg']['night']]
         } else {
-          result["name"] = "--whiteFF";
-          result["value"] = [
-            theme["--whiteFF"]["dark"],
-            theme["--whiteFF"]["night"],
-          ];
+          result['name'] = '--whiteFF'
+          result['value'] = [theme['--whiteFF']['dark'], theme['--whiteFF']['night']]
         }
       } else {
-        result["name"] = k;
-        result["value"] = [theme[k]["dark"], theme[k]["night"]];
+        result['name'] = k
+        result['value'] = [theme[k]['dark'], theme[k]['night']]
       }
-      break;
+      break
     }
   }
-
-  return result;
-};
+  return result
+}
 
 const rewriteUrlValue = (url, mode) => {
-  if (!url) return "";
-  let paths = url.split("/");
+  if (!url) return ''
+  let paths = url.split('/')
   let newPaths = paths.map((p, id) => {
     if (id === paths.length - 1) {
-      return p.replace(".", `.${mode}.`);
+      return p.replace('.', `.${mode}.`)
     }
-    return p;
-  });
+    return p
+  })
 
-  return newPaths.join("/");
-};
+  return newPaths.join('/')
+}
 
 const transpileGradient = (decl, theme) => {
-  let { value: val } = decl;
-  let ast;
+  let { value: val } = decl
+  let ast
   try {
     // gradient Parse 无法解析 .25turn 渐变方向值
-    ast = gradient.parse(val);
+    ast = gradient.parse(val)
   } catch (e) {
-    console.log("[gradient 解析解析异常，已跳过]", val);
-    return val;
+    console.log('[gradient 解析解析异常，已跳过]', val)
+    return val
   }
 
-  if (
-    ast &&
-    Array.isArray(ast) &&
-    ast.length > 0 &&
-    ast[0].type.includes("-gradient")
-  ) {
-    let multipleVal = [];
+  if (ast && Array.isArray(ast) && ast.length > 0 && ast[0].type.includes('-gradient')) {
+    let multipleVal = []
 
     ast.forEach((astItem, index) => {
-      let finalVals = [];
+      let finalVals = []
 
-      let colorList = astItem.colorStops;
+      let colorList = astItem.colorStops
 
       colorList.forEach((color, id) => {
-        let item = "";
-        if (color.type === "hex") {
-          item = getModeCssVariable(
-            transformColorValToHex(`#${color.value}`),
-            decl.prop
-          );
+        let item = ''
+        if (color.type === 'hex') {
+          item = getModeCssVariable(transformColorValToHex(`#${color.value}`), decl.prop)
         } else if (isColorKeyWords(color.value)) {
-          item = getModeCssVariable(
-            transformColorValToHex(color.value),
-            decl.prop
-          );
-        } else if (["rgb", "rgba"].includes(color.type)) {
-          let innerVal = color.value.join(",");
+          item = getModeCssVariable(transformColorValToHex(color.value), decl.prop)
+        } else if (['rgb', 'rgba'].includes(color.type)) {
+          let innerVal = color.value.join(',')
 
-          if (color.type === "rgb") {
-            let lightVal = transformColorValToHex(`rgb(${innerVal})`);
-            item = getModeCssVariable(lightVal, decl.prop);
+          if (color.type === 'rgb') {
+            let lightVal = transformColorValToHex(`rgb(${innerVal})`)
+            item = getModeCssVariable(lightVal, decl.prop)
           } else {
-            item = transpileRgbaAndHslaValue(
-              `rgba(${innerVal})`,
-              decl.prop,
-              theme
-            );
+            item = transpileRgbaAndHslaValue(`rgba(${innerVal})`, decl.prop, theme)
           }
-        } else if (["hsl", "hsla"].includes(color.type)) {
-          let innerVal = color.value.join(",");
+        } else if (['hsl', 'hsla'].includes(color.type)) {
+          let innerVal = color.value.join(',')
 
-          if (color.type === "hsl") {
-            let lightVal = transformColorValToHex(`hsl(${innerVal})`);
-            item = getModeCssVariable(lightVal, decl.prop);
+          if (color.type === 'hsl') {
+            let lightVal = transformColorValToHex(`hsl(${innerVal})`)
+            item = getModeCssVariable(lightVal, decl.prop)
           } else {
-            item = transpileRgbaAndHslaValue(
-              `hsla(${innerVal})`,
-              decl.prop,
-              theme
-            );
+            item = transpileRgbaAndHslaValue(`hsla(${innerVal})`, decl.prop, theme)
           }
         } else {
-          item = color.value;
+          item = color.value
         }
 
         if (color.length) {
-          item += ` ${color.length.value}${color.length.type}`;
+          item += ` ${color.length.value}${color.length.type}`
         }
 
-        finalVals[id] = item;
-      });
+        finalVals[id] = item
+      })
 
-      let orientation = astItem.orientation;
+      let orientation = astItem.orientation
 
       let direction = decl.value
-        .slice(decl.value.indexOf("(") + 1)
-        .split(",")
-        .shift();
+        .slice(decl.value.indexOf('(') + 1)
+        .split(',')
+        .shift()
 
       if (orientation) {
-        if (orientation.type === "angular") {
-          direction = orientation.value + "deg";
-        } else if (orientation.type === "directional") {
-          direction = `to ${orientation.value}`;
-        } else if (orientation[0].type === "extent-keyword") {
-          direction = orientation[0].value;
+        if (orientation.type === 'angular') {
+          direction = orientation.value + 'deg'
+        } else if (orientation.type === 'directional') {
+          direction = `to ${orientation.value}`
+        } else if (orientation[0].type === 'extent-keyword') {
+          direction = orientation[0].value
         }
       }
-      multipleVal[index] = `${astItem.type}(${direction}, ${finalVals.join(
-        ","
-      )})`;
-    });
+      multipleVal[index] = `${astItem.type}(${direction}, ${finalVals.join(',')})`
+    })
 
-    return multipleVal.join(",");
+    return multipleVal.join(',')
   }
-};
+}
 
 const transpileUrlValue = (decl, theme) => {
-  console.log("transpileUrlValue");
-  let { nodes: valueNodes } = valueParser(decl.value);
-  let pureValNodes = valueNodes.filter((node) => node.type !== "space");
+  let { nodes: valueNodes } = valueParser(decl.value)
+  let pureValNodes = valueNodes.filter((node) => node.type !== 'space')
 
-  let res = "";
+  let res = ''
 
   if (pureValNodes.length) {
-    pureValNodes.forEach((node, id) => {
-      if (
-        node.type === "function" &&
-        node.value === "url" &&
-        node.nodes.length === 1
-      ) {
-        res = `url("${rewriteUrlValue(node.nodes[0].value, theme)}")`;
+    pureValNodes.forEach((node) => {
+      if (node.type === 'function' && node.value === 'url' && node.nodes.length === 1) {
+        res = `url("${rewriteUrlValue(node.nodes[0].value, theme)}")`
       }
-    });
+    })
 
-    return res;
+    return res
   }
-};
+}
 
 const transpileCompositionValue = (decl, theme) => {
-  let { nodes: valueNodes } = valueParser(decl.value);
-  let pureValNodes = valueNodes.filter((node) => node.type !== "space");
+  let { nodes: valueNodes } = valueParser(decl.value)
+  let pureValNodes = valueNodes.filter((node) => node.type !== 'space')
 
-  const finalVals = [];
+  const finalVals = []
 
   if (pureValNodes.length) {
     pureValNodes.forEach((node, id) => {
-      let item = "";
+      let item = ''
       if (isHexColor(node) || isColorKeyWords(node.value)) {
-        item = getModeCssVariable(
-          transformColorValToHex(node.value),
-          decl.prop
-        );
-      } else if (["rgb", "rgba"].includes(node.value)) {
+        item = getModeCssVariable(transformColorValToHex(node.value), decl.prop)
+      } else if (['rgb', 'rgba'].includes(node.value)) {
         let innerVal = node.nodes
-          .filter((val) => val.type === "word")
+          .filter((val) => val.type === 'word')
           .map((n) => n.value)
-          .join(",");
+          .join(',')
 
-        if (node.value === "rgb") {
-          let lightVal = transformColorValToHex(`rgb(${innerVal})`);
-          item = getModeCssVariable(lightVal, decl.prop);
+        if (node.value === 'rgb') {
+          let lightVal = transformColorValToHex(`rgb(${innerVal})`)
+          item = getModeCssVariable(lightVal, decl.prop)
         } else {
-          item = transpileRgbaAndHslaValue(
-            `rgba(${innerVal})`,
-            decl.prop,
-            theme
-          );
+          item = transpileRgbaAndHslaValue(`rgba(${innerVal})`, decl.prop, theme)
         }
-      } else if (["hsl", "hsla"].includes(node.value)) {
+      } else if (['hsl', 'hsla'].includes(node.value)) {
         let innerVal = node.nodes
-          .filter((val) => val.type === "word")
+          .filter((val) => val.type === 'word')
           .map((n) => n.value)
-          .join(",");
+          .join(',')
 
-        if (node.value === "hsl") {
-          let lightVal = transformColorValToHex(`hsl(${innerVal})`);
-          item = getModeCssVariable(lightVal, decl.prop);
+        if (node.value === 'hsl') {
+          let lightVal = transformColorValToHex(`hsl(${innerVal})`)
+          item = getModeCssVariable(lightVal, decl.prop)
         } else {
-          item = transpileRgbaAndHslaValue(
-            `hsla(${innerVal})`,
-            decl.prop,
-            theme
-          );
+          item = transpileRgbaAndHslaValue(`hsla(${innerVal})`, decl.prop, theme)
         }
       } else {
-        item = node.value;
+        item = node.value
       }
 
-      finalVals[id] = item;
-    });
+      finalVals[id] = item
+    })
 
-    return finalVals.join(" ");
+    return finalVals.join(' ')
   }
-};
+}
 
 const transpileRgbaAndHslaValue = (colorVal, prop, theme) => {
-  let parsedValue = valueParser(colorVal);
-  let { nodes: valueNodes } = parsedValue;
+  let parsedValue = valueParser(colorVal)
+  let { nodes: valueNodes } = parsedValue
   if (valueNodes.length === 1) {
-    let { type, value, nodes } = valueNodes[0];
+    let { value, nodes } = valueNodes[0]
     // 提取r,g,b value 转换为 十六进制的色值
-    let hexColor = rh2hex(nodes, value);
+    let hexColor = rh2hex(nodes, value)
 
     // 将十六进制的色值 与 色板匹配，找出对应的主题色，如果没有，原路返回
-    let themeColor = getModeColor(hexColor, theme, prop);
-    let opacityVal = getOpacityFromRgbaAndHsla(nodes);
+    let themeColor = getModeColor(hexColor, theme, prop)
+    let opacityVal = getOpacityFromRgbaAndHsla(nodes)
 
     if (!themeColor) {
-      return colorVal;
+      return colorVal
     }
 
     //  找到十六进制的主题色找到后，转换为 r,g,b value
-    let argNumStr = hex2rh(themeColor, value).join(",");
+    let argNumStr = hex2rh(themeColor, value).join(',')
 
     // 加上 透明度参数 a ，拼合最后的value值返回
-    let finalVal = `${value}(${argNumStr},${opacityVal})`;
+    let finalVal = `${value}(${argNumStr},${opacityVal})`
 
-    return finalVal;
+    return finalVal
   }
-};
+}
 
 const rh2hex = (innerValNodes, fnName) => {
-  if (!fnName || !innerValNodes.length) return "``";
-  let argList = innerValNodes.filter((n) => n.type === "word");
+  if (!fnName || !innerValNodes.length) return '``'
+  let argList = innerValNodes.filter((n) => n.type === 'word')
 
-  let len = argList.length;
+  let len = argList.length
   if (len) {
     let argNumStr = argList
       .slice(0, len - 1)
       .map((n) => n.value)
-      .join(",");
-    let colorVal = `${fnName}(${argNumStr})`;
-    return transformColorValToHex(colorVal);
+      .join(',')
+    let colorVal = `${fnName}(${argNumStr})`
+    return transformColorValToHex(colorVal)
   }
-};
+}
 
 // 将hex color  转换为 对应的 rgb hsl 色值数组: [255,255,255]
 const hex2rh = (hexColor, fnName) => {
-  let fn = fnName.slice(0, fnName.length - 1);
-  return color(hexColor)[fn]().array();
-};
+  let fn = fnName.slice(0, fnName.length - 1)
+  return color(hexColor)[fn]().array()
+}
 
 const getOpacityFromRgbaAndHsla = (innerValNodes) => {
-  let argList = innerValNodes.filter((n) => n.type === "word");
-  return argList.pop().value;
-};
+  let argList = innerValNodes.filter((n) => n.type === 'word')
+  return argList.pop().value
+}
 
 //  统一处理 单个属性、复合属性 和 gradient 中包含的 rgba 和 hsla，输出最终完整的css value
 const processRgbaAndHslaValue = (decl, theme) => {
-  let parsedValue = valueParser(decl.value);
-  let { nodes: valueNodes } = parsedValue;
+  let parsedValue = valueParser(decl.value)
+  let { nodes: valueNodes } = parsedValue
 
   if (valueNodes.length === 1 && isColorFuncHasOpacity(valueNodes[0])) {
     // 单个属性
-    return transpileRgbaAndHslaValue(decl.value, decl.prop, theme);
-  } else if (
-    decl.value.includes("-gradient(") &&
-    !decl.value.includes("url(")
-  ) {
+    return transpileRgbaAndHslaValue(decl.value, decl.prop, theme)
+  } else if (decl.value.includes('-gradient(') && !decl.value.includes('url(')) {
     // 处理 conic-/linear-/radial-gradient ,暂不支持repeat
-    return transpileGradient(decl, theme);
-  } else if (decl.value.includes("-gradient(") && decl.value.includes("url(")) {
+    return transpileGradient(decl, theme)
+  } else if (decl.value.includes('-gradient(') && decl.value.includes('url(')) {
     // 这种情况有点复杂，还没想好怎么处理，一般场景很少
-    return decl.value;
+    return decl.value
   } else {
     //  处理复合属性 类似： #333 1px solid
-    return transpileCompositionValue(decl, theme);
+    return transpileCompositionValue(decl, theme)
   }
-};
+}
 
 const processCssProp = (decl) => {
-  let parsedValue = valueParser(decl.value);
-  let { nodes: valueNodes } = parsedValue;
+  let parsedValue = valueParser(decl.value)
+  let { nodes: valueNodes } = parsedValue
 
   if (compositionProps.includes(decl.prop)) {
-    if (decl.value.includes("-gradient(")) {
-      return decl.prop;
+    if (decl.value.includes('-gradient(')) {
+      return decl.prop
     }
 
-    if (decl.value.includes("url(")) {
-      if (["content", "border-image", "background-image"].includes(decl.prop)) {
-        return decl.prop;
+    if (decl.value.includes('url(')) {
+      if (['content', 'border-image', 'background-image'].includes(decl.prop)) {
+        return decl.prop
       }
-      return `${decl.prop}-image`;
+      return `${decl.prop}-image`
     }
 
     // 如果是复合value , 且是 rgba 或者 hsla 色值，就不用简化css属性 直接输出原值，因为对于的value 也是重新生成已拼接好的
-    if (
-      (valueNodes.length > 1 && decl.value.includes("rgba(")) ||
-      decl.value.includes("hsla(")
-    ) {
-      return decl.prop;
+    if ((valueNodes.length > 1 && decl.value.includes('rgba(')) || decl.value.includes('hsla(')) {
+      return decl.prop
     }
 
-    return `${decl.prop}-color`;
+    return `${decl.prop}-color`
   }
 
-  return decl.prop;
-};
+  return decl.prop
+}
 
 const processCssValue = (decl) => {
   // 普通 color value  直接  返回
   // 复合 或者 包含 color value 的  匹配 输出 值
   // 图片url 的  单独处理
 
-  let parsedValue = valueParser(decl.value);
-  let { nodes: valueNodes } = parsedValue;
+  let parsedValue = valueParser(decl.value)
+  let { nodes: valueNodes } = parsedValue
 
   if (ignoreColor.includes(decl.value)) {
-    return decl.value;
-  } else if (decl.prop === "content" && !decl.value.includes("url(")) {
-    return `${decl.value}`;
-  } else if (decl.value.includes("var(")) {
-    return decl.value;
+    return decl.value
+  } else if (decl.prop === 'content' && !decl.value.includes('url(')) {
+    return `${decl.value}`
+  } else if (decl.value.includes('var(')) {
+    return decl.value
   } else if (
     valueNodes.length === 1 &&
-    (isColorFuncNoOpacity(valueNodes[0]) ||
-      isHexColor(valueNodes[0]) ||
-      isColorKeyWords(decl.value))
+    (isColorFuncNoOpacity(valueNodes[0]) || isHexColor(valueNodes[0]) || isColorKeyWords(decl.value))
   ) {
     // 单个颜色属性
-    return getModeCssVariable(transformColorValToHex(decl.value), decl.prop);
+    return getModeCssVariable(transformColorValToHex(decl.value), decl.prop)
   } else if (valueNodes.length === 1 && isColorFuncHasOpacity(valueNodes[0])) {
     // rgba hlsa 带透明度的颜色值不处理
-    return decl.value;
-  } else if (
-    decl.value.includes("-gradient(") &&
-    !decl.value.includes("url(")
-  ) {
+    return decl.value
+  } else if (decl.value.includes('-gradient(') && !decl.value.includes('url(')) {
     // 处理 conic-/linear-/radial-gradient ,暂不支持repeat
-    return transpileGradient(decl);
-  } else if (decl.value.includes("-gradient(") && decl.value.includes("url(")) {
+    return transpileGradient(decl)
+  } else if (decl.value.includes('-gradient(') && decl.value.includes('url(')) {
     // 这种情况有点复杂，还没想好怎么处理，一般场景很少
-    return decl.value;
+    return decl.value
   } else {
     //  处理复合属性 类似： #333 1px solid
-    return transpileCompositionValue(decl);
+    return transpileCompositionValue(decl)
   }
-};
+}
 
 const processSelector = (selector, themeSelector) => {
-  if (selector.includes(",")) {
-    let arr = selector.split(",").map((s) => {
-      return `${themeSelector} ${s}`;
-    });
+  if (selector.includes(',')) {
+    let arr = selector.split(',').map((s) => {
+      return `${themeSelector} ${s}`
+    })
 
-    return arr.join(",");
+    return arr.join(',')
   } else {
-    return `${themeSelector} ${selector}`;
+    return `${themeSelector} ${selector}`
   }
-};
+}
 
 // 将自定义色板配置对象转换为css变量
 const parseObjectToCssVariable = (obj, darkSelector, nightSelector) => {
-  let lightStr = "";
-  let darkStr = "";
-  let nightStr = "";
+  let lightStr = ''
+  let darkStr = ''
+  let nightStr = ''
 
   for (let k in obj) {
-    lightStr += `${k}: ${obj[k]["light"]};`;
-    darkStr += `${k}: ${obj[k]["dark"]};`;
-    nightStr += `${k}: ${obj[k]["night"]};`;
+    lightStr += `${k}: ${obj[k]['light']};`
+    darkStr += `${k}: ${obj[k]['dark']};`
+    nightStr += `${k}: ${obj[k]['night']};`
   }
 
-  let cssVaribleStr = `:root {${lightStr}} ${darkSelector} {${darkStr}} ${nightSelector} {${nightStr}}`;
+  let cssVaribleStr = `:root {${lightStr}} ${darkSelector} {${darkStr}} ${nightSelector} {${nightStr}}`
 
-  return cssVaribleStr;
-};
+  return cssVaribleStr
+}
 
-export {
+module.exports = {
   isSupported,
   themeSelectorIncluded,
   verifyDeclareProp,
@@ -497,4 +438,4 @@ export {
   processRgbaAndHslaValue,
   transpileUrlValue,
   parseObjectToCssVariable,
-};
+}

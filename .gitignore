@@ -3,3 +3,4 @@ plugin.log
 .vscode/
 test/
 yarn-error.log
+css-variable.css

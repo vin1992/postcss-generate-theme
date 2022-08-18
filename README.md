@@ -39,12 +39,7 @@
 ```css
 .container {
   border: 1px solid #333;
-  background: linear-gradient(
-    180deg,
-    #333 25%,
-    white 75%,
-    rgb(255, 255, 255) 100%
-  );
+  background: linear-gradient(180deg, #333 25%, white 75%, rgb(255, 255, 255) 100%);
   color: #fff;
   box-shadow: 2px 2px 2px 2px #ddd;
 }
@@ -55,12 +50,7 @@
 ```css
 .container {
   border: 1px solid var(--black33);
-  background: linear-gradient(
-    180deg,
-    var(--black33) 25%,
-    var(--bg) 75%,
-    var(--bg) 100%
-  );
+  background: linear-gradient(180deg, var(--black33) 25%, var(--bg) 75%, var(--bg) 100%);
   color: var(--whiteFF);
   box-shadow: 2px 2px 2px 2px var(--blackDD);
 }
@@ -70,7 +60,7 @@
 
 ```css
 .container {
-  background: url("./img/bg.png") no-repeat center scroll;
+  background: url('./img/bg.png') no-repeat center scroll;
   background-size: contain;
 }
 ```
@@ -79,19 +69,19 @@
 
 ```css
 .container {
-  background: url("./img/bg.png") no-repeat center scroll;
+  background: url('./img/bg.png') no-repeat center scroll;
   background-size: contain;
-  list-style: square url("./img/dot-ico.png");
+  list-style: square url('./img/dot-ico.png');
 }
 
 .theme-dark .container {
-  background-image: url("./img/bg.dark.png");
-  list-style-image: url("./img/dot-ico.dark.png");
+  background-image: url('./img/bg.dark.png');
+  list-style-image: url('./img/dot-ico.dark.png');
 }
 
 .theme-night .container {
-  background-image: url("./img/bg.night.png");
-  list-style-image: url("./img/dot-ico.night.png");
+  background-image: url('./img/bg.night.png');
+  list-style-image: url('./img/dot-ico.night.png');
 }
 ```
 
@@ -107,23 +97,23 @@
 /* 处理前 */
 .container {
   /* no dark  */
-  background: url("./img/bg.png");
-  border-image: url("./img/border.png");
+  background: url('./img/bg.png');
+  border-image: url('./img/border.png');
 }
 /* 处理后 */
 .container {
   /* no dark  */
-  background: url("./img/bg.png");
-  border-image: url("./img/border.png");
+  background: url('./img/bg.png');
+  border-image: url('./img/border.png');
 }
 
 .theme-dark .container {
-  border-image: url("./img/border.dark.png");
+  border-image: url('./img/border.dark.png');
 }
 
 .theme-night .container {
-  background: url("./img/bg.night.png");
-  border-image: url("./img/border.night.png");
+  background: url('./img/bg.night.png');
+  border-image: url('./img/border.night.png');
 }
 ```
 
@@ -159,12 +149,12 @@ module.exports = {
 ```js
 module.exports = {
   plugins: [
-    require("postcss-generate-theme")({
-      darkSelector: ".theme-dark",
-      nightSelector: ".theme-night",
+    require('postcss-generate-theme')({
+      darkSelector: '.theme-dark',
+      nightSelector: '.theme-night',
     }),
   ],
-};
+}
 ```
 
 ### `darkSelector`
@@ -186,6 +176,38 @@ module.exports = {
 ### `onlyPicture` （只在 vite 配置项为 true 时才会生效）
 
 类型: `boolean`. 默认值: `false`. 表示是否只处理图片相关主题适配，默认不是，代表除了图片之外，其他 css 样式的主题适配会默认优先处理.
+
+### `filter`
+
+类型: `globStar`. 默认值: `**/node_modules/**`. 表示用来过滤指定目录的匹配规则，也支持数组类型 ,具体配置参见 https://github.com/isaacs/minimatch#usage
+
+### `customColorPanel`
+
+类型: `object`. 默认值: `默认色板值`. 如果需要自定义色板，可以将色板配置对象传入该属性中，注意自定义色板避免日间色#fff,因为白色比较特殊，否则深色夜间替换结果并不一定如预期一样。
+
+配置对象格式：
+
+```json
+ '--xxx': {
+          light: '#111',
+          dark: '#222',
+          night: '#333',
+        }
+```
+
+传值举例
+
+```javascript
+genTheme({
+  customColorPanel: {
+    '--xxx': {
+      light: '#111',
+      dark: '#222',
+      night: '#333',
+    },
+  },
+})
+```
 
 ## 答疑
 
@@ -215,12 +237,7 @@ module.exports = {
 
 ```css
 .container {
-  background: linear-gradient(
-    180deg,
-    #333 25%,
-    transparent 75%,
-    rgb(255, 255, 255) 100%
-  );
+  background: linear-gradient(180deg, #333 25%, transparent 75%, rgb(255, 255, 255) 100%);
 }
 ```
 
@@ -228,12 +245,7 @@ module.exports = {
 
 ```css
 .container {
-  background: linear-gradient(
-    180deg,
-    var(--black33) 25%,
-    transparent 75%,
-    var(--bg) 100%
-  );
+  background: linear-gradient(180deg, var(--black33) 25%, transparent 75%, var(--bg) 100%);
 }
 ```
 
